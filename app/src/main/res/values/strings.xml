@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Parking Spots</string>
+    <string name="app_name">Parking App</string>
     <string name="app_description">Бронирование парковочных мест</string>
     <string name="logo_letter">P</string>
-    <string name="username_placeholder">Имя пользователя</string>
-    <string name="password_placeholder">Пароль</string>
-    <string name="enter_placeholder">Вход</string>
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="sign_in">Вход</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.parkingspots.ui.theme
+package com.hse.parkingapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

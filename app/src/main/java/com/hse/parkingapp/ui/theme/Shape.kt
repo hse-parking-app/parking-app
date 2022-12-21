@@ -1,4 +1,4 @@
-package com.example.parkingspots.ui.theme
+package com.hse.parkingapp.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes

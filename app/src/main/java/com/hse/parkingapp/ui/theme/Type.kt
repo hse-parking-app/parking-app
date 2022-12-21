@@ -1,4 +1,4 @@
-package com.example.parkingspots.ui.theme
+package com.hse.parkingapp.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.parkingspots.R
+import com.hse.parkingapp.R
 
 val sfProDisplay = FontFamily(
     Font(R.font.sfpro_display_regular),
