@@ -1,12 +1,9 @@
 package com.hse.parkingapp.ui.signin
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +15,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hse.parkingapp.R
@@ -32,12 +28,7 @@ fun SignInScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .background(
-                MaterialTheme.colorScheme.background
-            )
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .padding(top = 64.dp)
+            .fillMaxSize()
     ) {
         Logo()
         Header()
@@ -49,21 +40,13 @@ fun SignInScreen(
 fun Logo(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .background(
-                MaterialTheme.colorScheme.tertiary,
-                shape = CircleShape
-            )
             .size(150.dp),
         contentAlignment = Alignment.Center
     ) {
-        Image(imageVector = ImageVector.vectorResource(R.drawable.parking_logo),
-            contentDescription = "Parking App logo")
-//        Text(
-//            text = stringResource(id = R.string.logo_letter),
-//            color = MaterialTheme.colorScheme.primary,
-//            textAlign = TextAlign.Center,
-//            style = MaterialTheme.typography.titleLarge
-//        )
+        Image(
+            imageVector = ImageVector.vectorResource(R.drawable.parking_logo),
+            contentDescription = "Parking App logo"
+        )
     }
 }
 
@@ -76,12 +59,12 @@ fun Header(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = stringResource(id = R.string.app_name),
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
             text = stringResource(id = R.string.app_description),
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -95,38 +78,27 @@ fun InputLine(
     placeholder: String = "",
     isPassword: Boolean = false,
 ) {
-    // Provides blue color for text selection and cursor. Leave it or rewrite color schema a bit
-    val customTextSelectionColors = TextSelectionColors(
-        handleColor = MaterialTheme.colorScheme.onSecondary,
-        backgroundColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.4f)
+    TextField(
+        value = value,
+        onValueChange = { onValueChanged(it) },
+        placeholder = {
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = TextFieldDefaults.textFieldColors(
+            disabledLabelColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        shape = MaterialTheme.shapes.medium,
+        singleLine = true,
+        keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
     )
-
-    CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
-        TextField(
-            value = value,
-            onValueChange = { onValueChanged(it) },
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colorScheme.onPrimary,
-                containerColor = MaterialTheme.colorScheme.secondary,
-                cursorColor = MaterialTheme.colorScheme.onSecondary,
-                disabledLabelColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            shape = MaterialTheme.shapes.medium,
-            singleLine = true,
-            keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
-        )
-    }
 }
 
 @Composable
@@ -153,16 +125,12 @@ fun Authentication(
             placeholder = stringResource(id = R.string.password),
             isPassword = true
         )
-        FilledTonalButton(
+        Button(
             onClick = { onAuthClick() },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp)
+                .padding(top = 16.dp)
                 .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
             shape = MaterialTheme.shapes.medium
         ) {
             Text(
@@ -173,7 +141,12 @@ fun Authentication(
     }
 }
 
-@Preview(showSystemUi = true, showBackground = true, device = Devices.PIXEL_2)
+@Preview(name = "Sign In light mode",
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    showBackground = true)
+@Preview(name = "Sign In dark mode",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true)
 @Composable
 fun SignInScreenPreview() {
     ParkingAppTheme {
