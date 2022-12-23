@@ -2,7 +2,6 @@ package com.hse.parkingapp.ui.signin
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -29,9 +28,6 @@ fun SignInScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .background(
-                MaterialTheme.colorScheme.background
-            )
             .fillMaxSize()
     ) {
         Logo()
@@ -129,12 +125,11 @@ fun Authentication(
             placeholder = stringResource(id = R.string.password),
             isPassword = true
         )
-        // Why FilledTonalButton
         Button(
             onClick = { onAuthClick() },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp)
+                .padding(top = 16.dp)
                 .height(56.dp),
             shape = MaterialTheme.shapes.medium
         ) {
