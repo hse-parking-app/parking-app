@@ -1,7 +1,12 @@
 package com.hse.parkingapp.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainViewModel : ViewModel() {
     val uiState = MutableStateFlow(AuthenticationState())
@@ -19,6 +24,9 @@ class MainViewModel : ViewModel() {
             }
             is AuthenticationEvent.Authenticate -> {
                 authenticate()
+            }
+            is AuthenticationEvent.ErrorDismissed -> {
+                dismissError()
             }
         }
     }
@@ -62,5 +70,21 @@ class MainViewModel : ViewModel() {
             isLoading = true
         )
         // TODO: trigger network request
+        viewModelScope.launch {
+            delay(2000L)
+
+            withContext(Dispatchers.Main) {
+                uiState.value = uiState.value.copy(
+                    isLoading = false,
+                    error = null  // change error string here to trigger authentication error
+                )
+            }
+        }
+    }
+
+    private fun dismissError() {
+        uiState.value = uiState.value.copy(
+            error = null
+        )
     }
 }
