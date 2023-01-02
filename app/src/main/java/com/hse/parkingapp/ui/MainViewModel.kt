@@ -1,14 +1,24 @@
 package com.hse.parkingapp.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hse.parkingapp.ParkingNavigationActions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainViewModel : ViewModel() {
+// ViewModel factory to create a ViewModel with parameters
+class MainViewModelFactory(private val navigationActions: ParkingNavigationActions)
+    : ViewModelProvider.NewInstanceFactory() {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+        MainViewModel(navigationActions) as T
+}
+
+class MainViewModel(private val navigationActions: ParkingNavigationActions) : ViewModel() {
     val uiState = MutableStateFlow(AuthenticationState())
 
     fun handleEvent(authenticationEvent: AuthenticationEvent) {
@@ -79,6 +89,8 @@ class MainViewModel : ViewModel() {
                     error = null  // change error string here to trigger authentication error
                 )
             }
+
+            navigationActions.navigateToMain()
         }
     }
 
