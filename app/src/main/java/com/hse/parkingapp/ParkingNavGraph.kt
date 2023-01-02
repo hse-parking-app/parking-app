@@ -1,6 +1,7 @@
 package com.hse.parkingapp
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,7 +31,8 @@ fun ParkingNavGraph(
     ) {
         composable(ParkingDestinations.SIGN_IN_ROUTE) {
             SignInScreen(
-                onAuthClick = { navActions.navigateToMain() }
+                authenticationState = viewModel.uiState.collectAsState().value,
+                handleEvent = viewModel::handleEvent
             )
         }
         composable(ParkingDestinations.MAIN_ROUTE) {
