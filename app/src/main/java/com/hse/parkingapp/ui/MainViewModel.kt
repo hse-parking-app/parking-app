@@ -17,6 +17,9 @@ class MainViewModel : ViewModel() {
             is AuthenticationEvent.PasswordChanged -> {
                 updatePassword(authenticationEvent.password)
             }
+            is AuthenticationEvent.Authenticate -> {
+                authenticate()
+            }
         }
     }
 
@@ -52,5 +55,12 @@ class MainViewModel : ViewModel() {
             password = password,
             passwordRequirements = requirements.toList()
         )
+    }
+
+    private fun authenticate() {
+        uiState.value = uiState.value.copy(
+            isLoading = true
+        )
+        // TODO: trigger network request
     }
 }
