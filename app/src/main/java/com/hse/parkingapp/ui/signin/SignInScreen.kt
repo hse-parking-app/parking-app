@@ -45,12 +45,9 @@ fun SignInScreen(
             },
             onAuthenticate = {
                 handleEvent(AuthenticationEvent.Authenticate)
-            }
+            },
+            isLoading = authenticationState.isLoading
         )
-        // TODO: think about where to place it (maybe outside main Column)
-        if (authenticationState.isLoading) {
-            CircularProgressIndicator()
-        }
     }
 }
 
@@ -126,7 +123,8 @@ fun Authentication(
     onUsernameChanged: (username: String) -> Unit = {  },
     password: String? = "",
     onPasswordChanged: (password: String) -> Unit = {  },
-    onAuthenticate: () -> Unit = {  }
+    onAuthenticate: () -> Unit = {  },
+    isLoading: Boolean = false
 ) {
     Column(
         modifier = modifier.padding(horizontal = 20.dp, vertical = 64.dp),
@@ -152,10 +150,16 @@ fun Authentication(
                 .height(56.dp),
             shape = MaterialTheme.shapes.medium
         ) {
-            Text(
-                text = stringResource(id = R.string.sign_in),
-                style = MaterialTheme.typography.bodyMedium
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = stringResource(id = R.string.sign_in),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }

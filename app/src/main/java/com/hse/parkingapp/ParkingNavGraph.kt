@@ -15,10 +15,7 @@ import com.hse.parkingapp.ui.signin.SignInScreen
 fun ParkingNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = ParkingDestinations.SIGN_IN_ROUTE,
-//    navActions: ParkingNavigationActions = remember(navController) {
-//        ParkingNavigationActions(navController)
-//    },
+    startDestination: String = ParkingDestinations.SIGN_IN_ROUTE
 ) {
     val viewModel: MainViewModel =
         viewModel(factory = MainViewModelFactory(ParkingNavigationActions(navController)))
