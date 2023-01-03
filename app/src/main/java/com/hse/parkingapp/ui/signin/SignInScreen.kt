@@ -22,17 +22,35 @@ import com.hse.parkingapp.ui.theme.ParkingAppTheme
 
 @Composable
 fun SignInScreen(
-    onAuthClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    authenticationState: AuthenticationState = AuthenticationState(),
+    handleEvent: (event: AuthenticationEvent) -> Unit = {  }
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
     ) {
         Logo()
         Header()
-        Authentication(onAuthClick = onAuthClick)
+        Authentication(
+            username = authenticationState.username,
+            onUsernameChanged = { username ->
+                handleEvent(AuthenticationEvent.UsernameChanged(username))
+            },
+            password = authenticationState.password,
+            onPasswordChanged = { password ->
+                handleEvent(AuthenticationEvent.PasswordChanged(password))
+            },
+            onAuthenticate = {
+                handleEvent(AuthenticationEvent.Authenticate)
+            }
+        )
+        // TODO: think about where to place it (maybe outside main Column)
+        if (authenticationState.isLoading) {
+            CircularProgressIndicator()
+        }
     }
 }
 
@@ -104,29 +122,30 @@ fun InputLine(
 @Composable
 fun Authentication(
     modifier: Modifier = Modifier,
-    onAuthClick: () -> Unit,
+    username: String? = "",
+    onUsernameChanged: (username: String) -> Unit = {  },
+    password: String? = "",
+    onPasswordChanged: (password: String) -> Unit = {  },
+    onAuthenticate: () -> Unit = {  }
 ) {
     Column(
         modifier = modifier.padding(horizontal = 20.dp, vertical = 64.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var username by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-
         InputLine(
-            value = username,
-            onValueChanged = { newUsername -> username = newUsername },
+            value = username ?: "",
+            onValueChanged = onUsernameChanged,
             placeholder = stringResource(id = R.string.username)
         )
         InputLine(
-            value = password,
-            onValueChanged = { newPassword -> password = newPassword },
+            value = password ?: "",
+            onValueChanged = onPasswordChanged,
             placeholder = stringResource(id = R.string.password),
             isPassword = true
         )
         Button(
-            onClick = { onAuthClick() },
+            onClick = onAuthenticate,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
@@ -150,6 +169,6 @@ fun Authentication(
 @Composable
 fun SignInScreenPreview() {
     ParkingAppTheme {
-        SignInScreen(onAuthClick = {})
+        SignInScreen()
     }
 }
