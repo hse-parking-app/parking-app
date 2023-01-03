@@ -8,8 +8,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.hse.parkingapp.ui.MainViewModel
-import com.hse.parkingapp.ui.MainViewModelFactory
 import com.hse.parkingapp.ui.main.MainScreen
 import com.hse.parkingapp.ui.signin.SignInScreen
 

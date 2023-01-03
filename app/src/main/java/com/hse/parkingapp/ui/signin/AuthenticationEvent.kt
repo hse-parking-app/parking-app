@@ -1,4 +1,4 @@
-package com.hse.parkingapp.ui
+package com.hse.parkingapp.ui.signin
 
 sealed class AuthenticationEvent {
     object ToggleAuthenticationMode: AuthenticationEvent()

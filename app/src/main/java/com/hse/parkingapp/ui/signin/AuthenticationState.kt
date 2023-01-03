@@ -1,4 +1,4 @@
-package com.hse.parkingapp.ui
+package com.hse.parkingapp.ui.signin
 
 enum class AuthenticationMode {
     SIGN_UP,

@@ -1,9 +1,12 @@
-package com.hse.parkingapp.ui
+package com.hse.parkingapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.hse.parkingapp.ParkingNavigationActions
+import com.hse.parkingapp.ui.signin.AuthenticationEvent
+import com.hse.parkingapp.ui.signin.AuthenticationMode
+import com.hse.parkingapp.ui.signin.AuthenticationState
+import com.hse.parkingapp.ui.signin.PasswordRequirements
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
