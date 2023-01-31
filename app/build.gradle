@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.hse.parkingapp"
-        minSdk 21
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -31,6 +31,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
+        freeCompilerArgs += ["-Xjvm-default=all"]
         jvmTarget = '1.8'
     }
     buildFeatures {
@@ -57,6 +58,7 @@ dependencies {
     implementation "androidx.compose.material3:material3:1.1.0-alpha03"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$viewmodel_version"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
+    implementation "androidx.compose.ui:ui-util:$compose_version"
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
