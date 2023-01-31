@@ -3,6 +3,9 @@ package com.hse.parkingapp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hse.parkingapp.ui.main.SelectorEvent
+import com.hse.parkingapp.ui.main.SelectorState
+import com.hse.parkingapp.ui.main.Slot
 import com.hse.parkingapp.ui.signin.AuthenticationEvent
 import com.hse.parkingapp.ui.signin.AuthenticationMode
 import com.hse.parkingapp.ui.signin.AuthenticationState
@@ -22,9 +25,10 @@ class MainViewModelFactory(private val navigationActions: ParkingNavigationActio
 }
 
 class MainViewModel(private val navigationActions: ParkingNavigationActions) : ViewModel() {
-    val uiState = MutableStateFlow(AuthenticationState())
+    val authenticationState = MutableStateFlow(AuthenticationState())
+    val selectorState = MutableStateFlow(SelectorState())
 
-    fun handleEvent(authenticationEvent: AuthenticationEvent) {
+    fun handleAuthenticationEvent(authenticationEvent: AuthenticationEvent) {
         when (authenticationEvent) {
             is AuthenticationEvent.ToggleAuthenticationMode -> {
                 toggleAuthenticationMode()
@@ -45,16 +49,16 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
     }
 
     private fun toggleAuthenticationMode() {
-        val authenticationMode = uiState.value.authenticationMode
+        val authenticationMode = authenticationState.value.authenticationMode
         val newAuthenticationMode = if (authenticationMode == AuthenticationMode.SIGN_IN)
             AuthenticationMode.SIGN_UP else AuthenticationMode.SIGN_IN
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             authenticationMode = newAuthenticationMode
         )
     }
 
     private fun updateUsername(username: String) {
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             username = username
         )
     }
@@ -72,14 +76,14 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
             requirements.add(PasswordRequirements.NUMBER)
         }
 
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             password = password,
             passwordRequirements = requirements.toList()
         )
     }
 
     private fun authenticate() {
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             isLoading = true
         )
         // TODO: trigger network request
@@ -87,7 +91,7 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
             delay(2000L)
 
             withContext(Dispatchers.Main) {
-                uiState.value = uiState.value.copy(
+                authenticationState.value = authenticationState.value.copy(
                     isLoading = false,
                     error = null  // change error string here to trigger authentication error
                 )
@@ -98,8 +102,31 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
     }
 
     private fun dismissError() {
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             error = null
+        )
+    }
+
+    fun handleSelectorEvent(selectorEvent: SelectorEvent) {
+        when (selectorEvent) {
+            is SelectorEvent.DayChanged -> {
+                // TODO: implement the logic in future
+            }
+            is SelectorEvent.TimeChanged -> {
+                // TODO: implement the logic in future
+            }
+            is SelectorEvent.SlotChanged -> {
+                updateSlot(selectorEvent.slot)
+            }
+            is SelectorEvent.BookSlot -> {
+                // TODO: implement the logic in future
+            }
+        }
+    }
+
+    private fun updateSlot(slot: Slot) {
+        selectorState.value = selectorState.value.copy(
+            selectedSlot = slot
         )
     }
 }
