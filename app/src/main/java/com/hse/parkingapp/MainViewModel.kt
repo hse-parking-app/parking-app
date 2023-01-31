@@ -118,7 +118,7 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
             is SelectorEvent.SlotChanged -> {
                 updateSlot(selectorEvent.slot)
             }
-            is SelectorEvent.BookSlot -> {
+            is SelectorEvent.SlotBooked -> {
                 // TODO: implement the logic in future
             }
         }
