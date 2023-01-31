@@ -27,12 +27,15 @@ fun ParkingNavGraph(
     ) {
         composable(ParkingDestinations.SIGN_IN_ROUTE) {
             SignInScreen(
-                authenticationState = viewModel.uiState.collectAsState().value,
-                handleEvent = viewModel::handleEvent
+                authenticationState = viewModel.authenticationState.collectAsState().value,
+                handleEvent = viewModel::handleAuthenticationEvent
             )
         }
         composable(ParkingDestinations.MAIN_ROUTE) {
-            MainScreen()
+            MainScreen(
+                selectorState = viewModel.selectorState.collectAsState().value,
+                handleEvent = viewModel::handleSelectorEvent
+            )
         }
     }
 }
