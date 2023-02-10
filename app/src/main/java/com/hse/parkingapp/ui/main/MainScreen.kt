@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
+import com.hse.parkingapp.model.parking.Parking
+import com.hse.parkingapp.model.canvas.Canvas
+import com.hse.parkingapp.model.spot.Spot
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetValue
@@ -36,11 +39,9 @@ import kotlin.math.roundToInt
 fun MainScreen(
     modifier: Modifier = Modifier,
     selectorState: SelectorState = SelectorState(),
+    parking: Parking = Parking(),
     handleEvent: (event: SelectorEvent) -> Unit = {  }
 ) {
-    val canvas = Canvas(width = 390, height = 348)
-    val slots: List<Slot> = slotsExamples
-
     val bottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
 
@@ -48,12 +49,12 @@ fun MainScreen(
         DateChooser(
             selectorState = selectorState
         )
-        SlotCanvas(
-            canvas = canvas,
-            slots = slots,
-            onSlotClick = { slot ->
-                handleEvent(SelectorEvent.SlotChanged(slot))
-                if (slot.isAvailable) {
+        SpotCanvas(
+            canvas = parking.levels[0].canvas,
+            spots = parking.spots,
+            onSpotClick = { spot ->
+                handleEvent(SelectorEvent.SpotChanged(spot))
+                if (spot.isFree) {
                     scope.launch { bottomSheetState.show() }
                 }
             }
@@ -61,7 +62,7 @@ fun MainScreen(
     }
     BottomSheet(
         bottomSheetState = bottomSheetState,
-        parkingNumber = selectorState.selectedSlot?.parkingNumber,
+        parkingNumber = selectorState.selectedSpot?.parkingNumber,
         onBookClick = {
             scope.launch { bottomSheetState.hide() }
             // TODO: perform booking operation with a server
@@ -255,10 +256,10 @@ fun DateChooser(
 }
 
 @Composable
-fun SlotCanvas(
+fun SpotCanvas(
     canvas: Canvas = Canvas(0, 0),
-    slots: List<Slot> = emptyList(),
-    onSlotClick: (slot: Slot) -> Unit = {  }
+    spots: List<Spot> = emptyList(),
+    onSpotClick: (spot: Spot) -> Unit = {  }
 ) {
     var animated by remember { mutableStateOf(false) }
     var offsetX by remember { mutableStateOf(0f) }
@@ -308,13 +309,13 @@ fun SlotCanvas(
                     scaleY = scale.value
                 )
         ) {
-            slots.forEach { slot ->
-                SlotButton(
-                    offsetX = slot.x,
-                    offsetY = slot.y,
-                    parkingNumber = slot.parkingNumber,
-                    isAvailable = slot.isAvailable,
-                    onClick = { onSlotClick(slot) }
+            spots.forEach { spot ->
+                SpotButton(
+                    offsetX = spot.onCanvasCoords.x,
+                    offsetY = spot.onCanvasCoords.y,
+                    parkingNumber = spot.parkingNumber,
+                    isAvailable = spot.isFree,
+                    onClick = { onSpotClick(spot) }
                 )
             }
         }
@@ -346,7 +347,7 @@ fun TimeButton(
 }
 
 @Composable
-fun SlotButton(
+fun SpotButton(
     offsetX: Int = 0,
     offsetY: Int = 0,
     parkingNumber: String = "",
