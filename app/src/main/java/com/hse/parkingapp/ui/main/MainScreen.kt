@@ -313,6 +313,8 @@ fun SpotCanvas(
                 SpotButton(
                     offsetX = spot.onCanvasCoords.x,
                     offsetY = spot.onCanvasCoords.y,
+                    width = spot.canvas.width,
+                    height = spot.canvas.height,
                     parkingNumber = spot.parkingNumber,
                     isAvailable = spot.isFree,
                     onClick = { onSpotClick(spot) }
@@ -350,6 +352,8 @@ fun TimeButton(
 fun SpotButton(
     offsetX: Int = 0,
     offsetY: Int = 0,
+    width: Int = 140,
+    height: Int = 60,
     parkingNumber: String = "",
     isAvailable: Boolean = false,
     onClick: () -> Unit = {  },
@@ -389,8 +393,8 @@ fun SpotButton(
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         modifier = Modifier
-            .size(width = 140.dp, height = 60.dp)
-                // TODO: to work with gestures a little bit more deeply
+            .size(width = width.dp, height = height.dp)
+            // TODO: to work with gestures a little bit more deeply
 //            .pointerInput(Unit) {
 //                Log.d("test123", "pressed")
 //                detectTapGestures(
@@ -437,7 +441,12 @@ fun DayButton(
     Button(
         onClick = { /*TODO*/ },
         modifier = Modifier
-            .padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = if (isLastDayOfMonth) 12.dp else 4.dp)
+            .padding(
+                top = 4.dp,
+                bottom = 4.dp,
+                start = 4.dp,
+                end = if (isLastDayOfMonth) 12.dp else 4.dp
+            )
             .size(50.dp),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
