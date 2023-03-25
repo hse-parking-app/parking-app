@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -218,37 +219,18 @@ fun DateChooser(
         shadowElevation = 8.dp
     ) {
         Column {
-            // TODO: create an animation for a text of current month
             Crossfade(targetState = monthName) { month ->
                 when (month) {
                     dayDataState.getCurrentMonthName() -> MonthText(dayDataState.getCurrentMonthName())
                     dayDataState.getNextMonthName() -> MonthText(dayDataState.getNextMonthName())
                 }
             }
-            LazyRow(
-                state = listState,
-                contentPadding = PaddingValues(start = 16.dp)
-            ) {
-                items(dayDataState.dayDataList) { item ->
-                    DayButton(
-                        dayData = item,
-                        onClickChanged = dayDataState::onItemSelected
-                    )
-                }
-            }
-            LazyRow(
-                contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
-            ) {
-                item {
-                    TimeButton(time = "9:00 - 18:00")
-                }
-                item {
-                    TimeButton(time = "10:00 - 19:00")
-                }
-                item {
-                    TimeButton(time = "11:00 - 20:00")
-                }
-            }
+            DaysRow(
+                listState = listState,
+                daysList = dayDataState.dayDataList.toList(),
+                onClickChanged = dayDataState::onItemSelected
+            )
+            TimesRow()
         }
     }
 }
@@ -266,6 +248,45 @@ fun MonthText(
         ),
         style = MaterialTheme.typography.bodyMedium
     )
+}
+
+@Composable
+fun DaysRow(
+    listState: LazyListState = rememberLazyListState(),
+    daysList: List<DayData> = listOf(),
+    onClickChanged: (DayData) -> Unit = {  }
+) {
+    LazyRow(
+        state = listState,
+        contentPadding = PaddingValues(start = 16.dp)
+    ) {
+        items(daysList) { item ->
+            DayButton(
+                dayData = item,
+                onClickChanged = onClickChanged
+            )
+        }
+    }
+}
+
+@Composable
+fun TimesRow() {
+    val listState = rememberLazyListState()
+
+    LazyRow(
+        state = listState,
+        contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
+    ) {
+        item {
+            TimeButton(time = "9:00 - 18:00")
+        }
+        item {
+            TimeButton(time = "10:00 - 19:00")
+        }
+        item {
+            TimeButton(time = "11:00 - 20:00")
+        }
+    }
 }
 
 @Composable
