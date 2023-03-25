@@ -1,12 +1,15 @@
 package com.hse.parkingapp.ui.main
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +26,8 @@ import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
 import com.hse.parkingapp.model.parking.Parking
 import com.hse.parkingapp.model.canvas.Canvas
+import com.hse.parkingapp.model.day.DayData
+import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.spot.Spot
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
@@ -40,14 +45,16 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     selectorState: SelectorState = SelectorState(),
     parking: Parking = Parking(),
-    handleEvent: (event: SelectorEvent) -> Unit = {  }
+    handleEvent: (event: SelectorEvent) -> Unit = {  },
+    dayDataState: DayDataState = DayDataState()
 ) {
     val bottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
 
     Column(modifier = modifier) {
         DateChooser(
-            selectorState = selectorState
+            selectorState = selectorState,
+            dayDataState = dayDataState
         )
         SpotCanvas(
             canvas = parking.levels[0].canvas,
@@ -80,7 +87,6 @@ fun BottomSheet(
     parkingNumber: String? = "",
     onBookClick: () -> Unit = {  }
 ) {
-    // TODO: find out why bottom sheet expands a little bit more than expected?
     ModalBottomSheetLayout(
         modifier = modifier,
         sheetState = bottomSheetState,
@@ -195,11 +201,15 @@ fun BottomSheetFeature(
 @Composable
 fun DateChooser(
     modifier: Modifier = Modifier,
-    selectorState: SelectorState = SelectorState()
+    selectorState: SelectorState = SelectorState(),
+    dayDataState: DayDataState = DayDataState()
 ) {
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = selectorState.currentMonthLength - 1
-    )
+    val listState = rememberLazyListState()
+    val monthName by remember {
+        derivedStateOf {
+            dayDataState.dayDataList[listState.firstVisibleItemIndex].monthName
+        }
+    }
 
     Surface(
         modifier = modifier
@@ -209,32 +219,20 @@ fun DateChooser(
     ) {
         Column {
             // TODO: create an animation for a text of current month
-            Text(
-                text = selectorState.currentMonthName,
-                modifier = Modifier.padding(
-                    top = 36.dp,
-                    start = 20.dp,
-                    bottom = 4.dp
-                ),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            LazyRow(state = listState) {
-                items(selectorState.previousMonthLength) {
-                    DayButton(
-                        day = it + 1,
-                        isLastDayOfMonth = (it == selectorState.previousMonthLength - 1)
-                    )
+            Crossfade(targetState = monthName) { month ->
+                when (month) {
+                    dayDataState.getCurrentMonthName() -> MonthText(dayDataState.getCurrentMonthName())
+                    dayDataState.getNextMonthName() -> MonthText(dayDataState.getNextMonthName())
                 }
-                items(selectorState.currentMonthLength) {
+            }
+            LazyRow(
+                state = listState,
+                contentPadding = PaddingValues(start = 16.dp)
+            ) {
+                items(dayDataState.dayDataList) { item ->
                     DayButton(
-                        day = it + 1,
-                        isLastDayOfMonth = (it == selectorState.currentMonthLength - 1)
-                    )
-                }
-                items(selectorState.nextMonthLength) {
-                    DayButton(
-                        day = it + 1,
-                        isLastDayOfMonth = (it == selectorState.nextMonthLength - 1)
+                        dayData = item,
+                        onClickChanged = dayDataState::onItemSelected
                     )
                 }
             }
@@ -253,6 +251,21 @@ fun DateChooser(
             }
         }
     }
+}
+
+@Composable
+fun MonthText(
+    monthName: String = "January"
+) {
+    Text(
+        text = monthName,
+        modifier = Modifier.padding(
+            top = 36.dp,
+            start = 20.dp,
+            bottom = 4.dp
+        ),
+        style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 @Composable
@@ -435,28 +448,34 @@ fun SpotButton(
 
 @Composable
 fun DayButton(
-    day: Int = 0,
-    isLastDayOfMonth: Boolean = false
+    dayData: DayData = DayData(),
+    onClickChanged: (DayData) -> Unit = {  }
 ) {
     Button(
-        onClick = { /*TODO*/ },
+        onClick = {
+            if (!dayData.isSelected) {
+                onClickChanged(dayData.copy(isSelected = true))
+            }
+        },
         modifier = Modifier
             .padding(
                 top = 4.dp,
                 bottom = 4.dp,
                 start = 4.dp,
-                end = if (isLastDayOfMonth) 12.dp else 4.dp
+                end = if (dayData.isLastDayOfMonth) 12.dp else 4.dp
             )
             .size(50.dp),
+        border = if(dayData.isToday) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (dayData.isSelected)
+                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
-            text = "$day",
+            text = "${dayData.day}",
             style = MaterialTheme.typography.bodyMedium
         )
     }

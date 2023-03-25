@@ -2,7 +2,7 @@ package com.hse.parkingapp.model.day
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.TextStyle
 import java.util.*
 
@@ -10,8 +10,8 @@ class DayDataState(
     val dayDataList: SnapshotStateList<DayData> = mutableStateListOf()
 ) {
     init {
-        val todayDate = LocalDate.now()
-        var tempDate = LocalDate.now()
+        val todayDate = LocalDateTime.now()
+        var tempDate = LocalDateTime.now()
 
         var id = 0
         while (tempDate.month < todayDate.month + 2) {
@@ -48,26 +48,26 @@ class DayDataState(
     }
 
     fun getCurrentMonthName(): String {
-        return getMonthName(LocalDate.now())
+        return getMonthName(LocalDateTime.now())
     }
 
     fun getNextMonthName(): String {
-        return getMonthName(LocalDate.now().plusMonths(1))
+        return getMonthName(LocalDateTime.now().plusMonths(1))
     }
 
-    private fun getMonthName(date: LocalDate): String {
+    private fun getMonthName(date: LocalDateTime): String {
         return date.month.getDisplayName(
             TextStyle.FULL_STANDALONE,
             Locale.getDefault()
         )
     }
 
-    private fun isToday(todayDate: LocalDate, tempDate: LocalDate): Boolean {
+    private fun isToday(todayDate: LocalDateTime, tempDate: LocalDateTime): Boolean {
         return tempDate.dayOfMonth == todayDate.dayOfMonth &&
                 tempDate.month == todayDate.month
     }
 
-    private fun isLastDayOfMonth(tempDate: LocalDate): Boolean {
+    private fun isLastDayOfMonth(tempDate: LocalDateTime): Boolean {
         return tempDate.dayOfMonth == tempDate.month.length(false)
     }
 }

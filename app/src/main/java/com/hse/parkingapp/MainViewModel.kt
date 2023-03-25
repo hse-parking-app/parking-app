@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.hse.parkingapp.data.repository.Repository
+import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.parking.Parking
 import com.hse.parkingapp.model.spot.Spot
 import com.hse.parkingapp.ui.main.SelectorEvent
@@ -28,7 +29,9 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
 
     val authenticationState = MutableStateFlow(AuthenticationState())
     val selectorState = MutableStateFlow(SelectorState())
+
     val parking = MutableStateFlow(Parking())
+    val daysList = MutableStateFlow(DayDataState())
 
     fun handleAuthenticationEvent(authenticationEvent: AuthenticationEvent) {
         when (authenticationEvent) {
