@@ -34,12 +34,14 @@ class DayDataState(
     fun onItemSelected(selectedDayData: DayData) {
         val iterator = dayDataList.listIterator()
 
+        // TODO: it can be simplified, just store the position of the last selected day,
+        // TODO: unselect previous day and update the position variable
         while (iterator.hasNext()) {
             val listItem = iterator.next()
 
             iterator.set(
                 if (listItem.id == selectedDayData.id) {
-                    selectedDayData
+                    selectedDayData.copy(isSelected = true)
                 } else {
                     listItem.copy(isSelected = false)
                 }

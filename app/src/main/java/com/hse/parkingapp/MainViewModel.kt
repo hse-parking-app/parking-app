@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.hse.parkingapp.data.repository.Repository
+import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.parking.Parking
 import com.hse.parkingapp.model.spot.Spot
@@ -27,11 +28,13 @@ class MainViewModelFactory(private val navigationActions: ParkingNavigationActio
 class MainViewModel(private val navigationActions: ParkingNavigationActions) : ViewModel() {
     private val repository = Repository()
 
-    val authenticationState = MutableStateFlow(AuthenticationState())
-    val selectorState = MutableStateFlow(SelectorState())
-
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
+
+    val authenticationState = MutableStateFlow(AuthenticationState())
+    val selectorState = MutableStateFlow(SelectorState(
+        selectedDay = daysList.value.dayDataList.first()
+    ))
 
     fun handleAuthenticationEvent(authenticationEvent: AuthenticationEvent) {
         when (authenticationEvent) {
@@ -114,7 +117,7 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
     fun handleSelectorEvent(selectorEvent: SelectorEvent) {
         when (selectorEvent) {
             is SelectorEvent.DayChanged -> {
-                // TODO: implement the logic in future
+                updateDay(selectorEvent.day)
             }
             is SelectorEvent.TimeChanged -> {
                 // TODO: implement the logic in future
@@ -122,7 +125,7 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
             is SelectorEvent.SpotChanged -> {
                 updateSlot(selectorEvent.spot)
             }
-            is SelectorEvent.SlotBooked -> {
+            is SelectorEvent.SpotBooked -> {
                 // TODO: implement the logic in future
             }
         }
@@ -132,6 +135,13 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
         selectorState.value = selectorState.value.copy(
             selectedSpot = spot
         )
+    }
+
+    private fun updateDay(day: DayData) {
+        selectorState.value = selectorState.value.copy(
+            selectedDay = day
+        )
+        daysList.value.onItemSelected(day)
     }
 
     private suspend fun inflateParking() {
