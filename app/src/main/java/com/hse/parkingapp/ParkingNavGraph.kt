@@ -19,7 +19,6 @@ fun ParkingNavGraph(
 ) {
     val viewModel: MainViewModel =
         viewModel(factory = MainViewModelFactory(ParkingNavigationActions(navController)))
-//    viewModel.inflateParking()
 
     NavHost(
         navController = navController,
