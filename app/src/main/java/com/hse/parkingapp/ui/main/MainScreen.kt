@@ -301,19 +301,10 @@ fun SpotCanvas(
     spots: List<Spot> = emptyList(),
     onSpotClick: (spot: Spot) -> Unit = {  }
 ) {
-    var animated by remember { mutableStateOf(false) }
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     val scale = remember { Animatable(0.75f) }
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(animated) {
-        scale.animateTo(
-            targetValue = 0.9f,
-            animationSpec = FloatSpringSpec(0.5f, 40f)
-        )
-        animated = true
-    }
 
     Box(
         modifier = Modifier
