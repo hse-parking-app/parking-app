@@ -49,13 +49,17 @@ fun MainScreen(
     handleEvent: (event: SelectorEvent) -> Unit = {  },
     dayDataState: DayDataState = DayDataState()
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    )
     val scope = rememberCoroutineScope()
 
     Column(modifier = modifier) {
         DateChooser(
-            selectorState = selectorState,
-            dayDataState = dayDataState
+            dayDataState = dayDataState,
+            onDayDataClick = { day ->
+                handleEvent(SelectorEvent.DayChanged(day))
+            }
         )
         SpotCanvas(
             canvas = parking.levels[0].canvas,
@@ -71,6 +75,7 @@ fun MainScreen(
     BottomSheet(
         bottomSheetState = bottomSheetState,
         parkingNumber = selectorState.selectedSpot?.parkingNumber,
+        parkingDay = selectorState.selectedDay.toString(),
         onBookClick = {
             scope.launch { bottomSheetState.hide() }
             // TODO: perform booking operation with a server
@@ -86,6 +91,7 @@ fun BottomSheet(
         initialValue = ModalBottomSheetValue.Hidden
     ),
     parkingNumber: String? = "",
+    parkingDay: String? = "",
     onBookClick: () -> Unit = {  }
 ) {
     ModalBottomSheetLayout(
@@ -116,6 +122,7 @@ fun BottomSheet(
                             )
                         }
                     )
+                    // TODO: make a color for divider in a palette
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
                     BottomSheetFeature(
                         feature = R.string.time_and_date,
@@ -130,8 +137,7 @@ fun BottomSheet(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    // TODO: change sample data here
-                                    text = "вторник, 2 декабря",
+                                    text = parkingDay ?: "",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -202,13 +208,13 @@ fun BottomSheetFeature(
 @Composable
 fun DateChooser(
     modifier: Modifier = Modifier,
-    selectorState: SelectorState = SelectorState(),
-    dayDataState: DayDataState = DayDataState()
+    dayDataState: DayDataState = DayDataState(),
+    onDayDataClick: (day: DayData) -> Unit = {  }
 ) {
     val listState = rememberLazyListState()
     val monthName by remember {
         derivedStateOf {
-            dayDataState.dayDataList[listState.firstVisibleItemIndex].monthName
+            dayDataState.dayDataList[listState.firstVisibleItemIndex].month
         }
     }
 
@@ -228,7 +234,7 @@ fun DateChooser(
             DaysRow(
                 listState = listState,
                 daysList = dayDataState.dayDataList.toList(),
-                onClickChanged = dayDataState::onItemSelected
+                onDayDataClick = { onDayDataClick(it) }
             )
             TimesRow()
         }
@@ -254,7 +260,7 @@ fun MonthText(
 fun DaysRow(
     listState: LazyListState = rememberLazyListState(),
     daysList: List<DayData> = listOf(),
-    onClickChanged: (DayData) -> Unit = {  }
+    onDayDataClick: (DayData) -> Unit = {  }
 ) {
     LazyRow(
         state = listState,
@@ -263,7 +269,7 @@ fun DaysRow(
         items(daysList) { item ->
             DayButton(
                 dayData = item,
-                onClickChanged = onClickChanged
+                onDayDataClick = { dayData -> onDayDataClick(dayData) }
             )
         }
     }
@@ -470,14 +476,10 @@ fun SpotButton(
 @Composable
 fun DayButton(
     dayData: DayData = DayData(),
-    onClickChanged: (DayData) -> Unit = {  }
+    onDayDataClick: (DayData) -> Unit = {  }
 ) {
     Button(
-        onClick = {
-            if (!dayData.isSelected) {
-                onClickChanged(dayData.copy(isSelected = true))
-            }
-        },
+        onClick = { onDayDataClick(dayData) },
         modifier = Modifier
             .padding(
                 top = 4.dp,

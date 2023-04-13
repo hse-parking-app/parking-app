@@ -11,31 +11,42 @@ class DayDataState(
 ) {
     init {
         val todayDate = LocalDateTime.now()
-        var tempDate = LocalDateTime.now()
-
         var id = 0
+
+        // add first day in date selector
+        dayDataList.add(
+            DayData(
+                id = id++,
+                date = todayDate,
+                isToday = true,
+                isSelected = true
+            )
+        )
+
+        // shift to the next day
+        var tempDate = LocalDateTime.of(
+            todayDate.year, todayDate.month, todayDate.dayOfMonth + 1, 0, 0
+        )
         while (tempDate.month < todayDate.month + 2) {
             dayDataList.add(
                 DayData(
                     id = id++,
-                    day = tempDate.dayOfMonth,
-                    monthName = getMonthName(tempDate),
-                    isToday = isToday(todayDate, tempDate),
-                    isLastDayOfMonth = isLastDayOfMonth(tempDate),
-                    isSelected = isToday(todayDate, tempDate)
+                    date = tempDate
                 )
             )
-
             tempDate = tempDate.plusDays(1)
         }
     }
 
-    // were updating the entire list in a single pass using its iterator
+    /**
+     * Function can be optimized, just by storing the position of the last selected day.
+     * Unselect previous selected day and update the position variable.
+     * But i don't want to lose clarity of code inside handlers, so won't implement it now.
+     * At this moment, we update the entire list in a single pass using its iterator.
+     */
     fun onItemSelected(selectedDayData: DayData) {
         val iterator = dayDataList.listIterator()
 
-        // TODO: it can be simplified, just store the position of the last selected day,
-        // TODO: unselect previous day and update the position variable
         while (iterator.hasNext()) {
             val listItem = iterator.next()
 
@@ -62,14 +73,5 @@ class DayDataState(
             TextStyle.FULL_STANDALONE,
             Locale.getDefault()
         )
-    }
-
-    private fun isToday(todayDate: LocalDateTime, tempDate: LocalDateTime): Boolean {
-        return tempDate.dayOfMonth == todayDate.dayOfMonth &&
-                tempDate.month == todayDate.month
-    }
-
-    private fun isLastDayOfMonth(tempDate: LocalDateTime): Boolean {
-        return tempDate.dayOfMonth == tempDate.month.length(false)
     }
 }
