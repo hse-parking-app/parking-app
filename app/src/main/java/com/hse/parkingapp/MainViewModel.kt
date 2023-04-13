@@ -3,15 +3,19 @@ package com.hse.parkingapp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hse.parkingapp.data.repository.Repository
+import com.hse.parkingapp.model.day.DayData
+import com.hse.parkingapp.model.day.DayDataState
+import com.hse.parkingapp.model.parking.Parking
+import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.ui.main.SelectorEvent
+import com.hse.parkingapp.ui.main.SelectorState
 import com.hse.parkingapp.ui.signin.AuthenticationEvent
 import com.hse.parkingapp.ui.signin.AuthenticationMode
 import com.hse.parkingapp.ui.signin.AuthenticationState
 import com.hse.parkingapp.ui.signin.PasswordRequirements
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 // ViewModel factory to create a ViewModel with parameters
 class MainViewModelFactory(private val navigationActions: ParkingNavigationActions)
@@ -22,9 +26,17 @@ class MainViewModelFactory(private val navigationActions: ParkingNavigationActio
 }
 
 class MainViewModel(private val navigationActions: ParkingNavigationActions) : ViewModel() {
-    val uiState = MutableStateFlow(AuthenticationState())
+    private val repository = Repository()
 
-    fun handleEvent(authenticationEvent: AuthenticationEvent) {
+    val parking = MutableStateFlow(Parking())
+    val daysList = MutableStateFlow(DayDataState())
+
+    val authenticationState = MutableStateFlow(AuthenticationState())
+    val selectorState = MutableStateFlow(SelectorState(
+        selectedDay = daysList.value.dayDataList.first()
+    ))
+
+    fun handleAuthenticationEvent(authenticationEvent: AuthenticationEvent) {
         when (authenticationEvent) {
             is AuthenticationEvent.ToggleAuthenticationMode -> {
                 toggleAuthenticationMode()
@@ -45,16 +57,16 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
     }
 
     private fun toggleAuthenticationMode() {
-        val authenticationMode = uiState.value.authenticationMode
+        val authenticationMode = authenticationState.value.authenticationMode
         val newAuthenticationMode = if (authenticationMode == AuthenticationMode.SIGN_IN)
             AuthenticationMode.SIGN_UP else AuthenticationMode.SIGN_IN
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             authenticationMode = newAuthenticationMode
         )
     }
 
     private fun updateUsername(username: String) {
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             username = username
         )
     }
@@ -72,34 +84,78 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
             requirements.add(PasswordRequirements.NUMBER)
         }
 
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             password = password,
             passwordRequirements = requirements.toList()
         )
     }
 
     private fun authenticate() {
-        uiState.value = uiState.value.copy(
-            isLoading = true
-        )
         // TODO: trigger network request
         viewModelScope.launch {
-            delay(2000L)
+            authenticationState.value = authenticationState.value.copy(
+                isLoading = true
+            )
 
-            withContext(Dispatchers.Main) {
-                uiState.value = uiState.value.copy(
-                    isLoading = false,
-                    error = null  // change error string here to trigger authentication error
-                )
-            }
+            inflateParking()
+
+            authenticationState.value = authenticationState.value.copy(
+                isLoading = false,
+                error = null  // change error string here to trigger authentication error
+            )
 
             navigationActions.navigateToMain()
         }
     }
 
     private fun dismissError() {
-        uiState.value = uiState.value.copy(
+        authenticationState.value = authenticationState.value.copy(
             error = null
+        )
+    }
+
+    fun handleSelectorEvent(selectorEvent: SelectorEvent) {
+        when (selectorEvent) {
+            is SelectorEvent.DayChanged -> {
+                updateDay(selectorEvent.day)
+            }
+            is SelectorEvent.TimeChanged -> {
+                // TODO: implement the logic in future
+            }
+            is SelectorEvent.SpotChanged -> {
+                updateSlot(selectorEvent.spot)
+            }
+            is SelectorEvent.SpotBooked -> {
+                // TODO: implement the logic in future
+            }
+        }
+    }
+
+    private fun updateSlot(spot: Spot) {
+        selectorState.value = selectorState.value.copy(
+            selectedSpot = spot
+        )
+    }
+
+    private fun updateDay(day: DayData) {
+        selectorState.value = selectorState.value.copy(
+            selectedDay = day
+        )
+        daysList.value.onItemSelected(day)
+    }
+
+    private suspend fun inflateParking() {
+        // TODO: return error codes if they emerge to show them in UI
+        val building = repository.getBuildings().body()!![0]
+        val levels = repository.getBuildingLevels(
+            buildingId = building.id
+        ).body()!!
+        val spots = repository.getLevelSpots(levels[1].id).body()!!
+
+        parking.value = parking.value.copy(
+            building = building,
+            levels = levels,
+            spots = spots
         )
     }
 }

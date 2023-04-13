@@ -5,4 +5,9 @@
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="sign_in">Вход</string>
+    <string name="booking">Бронирование</string>
+    <string name="place">Место</string>
+    <string name="time_and_date">Время / дата</string>
+    <string name="car">Автомобиль</string>
+    <string name="book">Забронировать</string>
 </resources>
