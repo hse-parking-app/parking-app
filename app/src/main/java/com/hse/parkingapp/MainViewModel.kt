@@ -150,7 +150,7 @@ class MainViewModel(private val navigationActions: ParkingNavigationActions) : V
         val levels = repository.getBuildingLevels(
             buildingId = building.id
         ).body()!!
-        val spots = repository.getLevelSpots(levels[1].id).body()!!
+        val spots = repository.getLevelSpots(levels[0].id).body()!!
 
         parking.value = parking.value.copy(
             building = building,

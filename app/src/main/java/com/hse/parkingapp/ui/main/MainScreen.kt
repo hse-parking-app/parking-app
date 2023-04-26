@@ -347,7 +347,7 @@ fun SpotCanvas(
                     width = spot.canvas.width,
                     height = spot.canvas.height,
                     parkingNumber = spot.parkingNumber,
-                    isAvailable = spot.isFree,
+                    isFree = spot.isFree,
                     onClick = { onSpotClick(spot) }
                 )
             }
@@ -386,7 +386,8 @@ fun SpotButton(
     width: Int = 140,
     height: Int = 60,
     parkingNumber: String = "",
-    isAvailable: Boolean = false,
+    isAvailable: Boolean = true,
+    isFree: Boolean = false,
     onClick: () -> Unit = {  },
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -394,7 +395,7 @@ fun SpotButton(
     var isReleased by remember { mutableStateOf(false) }  // ???
     val sizeScale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
     val offsetXAnimated by animateIntAsState(
-        targetValue = if (isReleased && !isAvailable) offsetX + 10 else offsetX,
+        targetValue = if (isReleased && !isFree) offsetX + 10 else offsetX,
         animationSpec = spring(
             dampingRatio = 0.3f,
             stiffness = 5000f
@@ -419,34 +420,12 @@ fun SpotButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isAvailable) MaterialTheme.colorScheme.tertiary
+            containerColor = if (isFree) MaterialTheme.colorScheme.tertiary
                 else MaterialTheme.colorScheme.tertiaryContainer,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         modifier = Modifier
             .size(width = width.dp, height = height.dp)
-            // TODO: to work with gestures a little bit more deeply
-//            .pointerInput(Unit) {
-//                Log.d("test123", "pressed")
-//                detectTapGestures(
-//                    onPress = {
-//                        Log.d("test123", "pressed")
-//                    },
-//                    onTap = {
-//                        Log.d("test123", "pressed")
-//                        try {
-//                            Log.d("test123", "pressed")
-////                            isPressed = true
-//                            // Start recording here
-////                            awaitRelease()
-//                        } finally {
-//                            Log.d("test123", "released")
-////                            isPressed = false
-//                            // Stop recording here
-//                        }
-//                    }
-//                )
-//            }
             .offset(x = offsetXAnimated.dp, y = offsetY.dp)
             .graphicsLayer(
                 scaleX = sizeScale,
@@ -458,7 +437,7 @@ fun SpotButton(
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
-            text = parkingNumber,
+            text = if (isAvailable) parkingNumber else "",
             style = MaterialTheme.typography.bodySmall
         )
     }
