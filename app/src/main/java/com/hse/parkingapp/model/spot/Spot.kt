@@ -9,6 +9,7 @@ data class Spot(
     val levelId: String = "",
     val buildingId: String = "",
     val parkingNumber: String = "",
+    val isAvailable: Boolean = true,
     val isFree: Boolean = true,
     val canvas: Canvas = Canvas(),
     val onCanvasCoords: OnCanvasCoords = OnCanvasCoords()
