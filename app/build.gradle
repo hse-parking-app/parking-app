@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.0'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
 }
 
 android {
@@ -28,12 +30,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
         freeCompilerArgs += ["-Xjvm-default=all"]
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         compose true
@@ -58,7 +60,7 @@ dependencies {
     implementation "androidx.navigation:navigation-compose:$nav_version"
     implementation "androidx.compose.material3:material3:$compose_material_3"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$viewmodel_version"
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$systemuicontroller_version"
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
@@ -67,10 +69,19 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version"
 
+    implementation "com.google.dagger:hilt-android:$dagger_hilt_version"
+    kapt "com.google.dagger:hilt-compiler:$dagger_hilt_compiler_version"
+    kapt "androidx.hilt:hilt-compiler:$hilt_compiler_version"
+    implementation "androidx.hilt:hilt-navigation-compose:$hilt_navigation_version"
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation "androidx.test.ext:junit:$junit_version"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_version"
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+}
+
+kapt {
+    correctErrorTypes true
 }

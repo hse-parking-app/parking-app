@@ -35,17 +35,17 @@ fun SignInScreen(
     ) {
         Logo()
         Header()
-        Authentication(
-            username = authenticationState.username,
+        Login(
+            username = authenticationState.email,
             onUsernameChanged = { username ->
-                handleEvent(AuthenticationEvent.UsernameChanged(username))
+                handleEvent(AuthenticationEvent.EmailChanged(username))
             },
             password = authenticationState.password,
             onPasswordChanged = { password ->
                 handleEvent(AuthenticationEvent.PasswordChanged(password))
             },
-            onAuthenticate = {
-                handleEvent(AuthenticationEvent.Authenticate)
+            onLogin = {
+                handleEvent(AuthenticationEvent.SignIn)
             },
             isLoading = authenticationState.isLoading
         )
@@ -122,13 +122,13 @@ fun InputLine(
 }
 
 @Composable
-fun Authentication(
+fun Login(
     modifier: Modifier = Modifier,
     username: String? = "",
     onUsernameChanged: (username: String) -> Unit = {  },
     password: String? = "",
     onPasswordChanged: (password: String) -> Unit = {  },
-    onAuthenticate: () -> Unit = {  },
+    onLogin: () -> Unit = {  },
     isLoading: Boolean = false
 ) {
     Column(
@@ -148,7 +148,7 @@ fun Authentication(
             isPassword = true
         )
         Button(
-            onClick = onAuthenticate,
+            onClick = onLogin,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)

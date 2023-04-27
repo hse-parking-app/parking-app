@@ -7,7 +7,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-interface ApiService {
+interface ParkingApi {
     @GET("building")
     suspend fun getBuildings(): Response<List<Building>>
 
