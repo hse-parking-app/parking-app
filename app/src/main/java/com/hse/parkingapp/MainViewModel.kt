@@ -1,7 +1,6 @@
 package com.hse.parkingapp
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.hse.parkingapp.data.repository.Repository
 import com.hse.parkingapp.model.day.DayData
@@ -17,15 +16,7 @@ import com.hse.parkingapp.ui.signin.PasswordRequirements
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 
-// ViewModel factory to create a ViewModel with parameters
-class MainViewModelFactory(private val navigationActions: ParkingNavigationActions)
-    : ViewModelProvider.NewInstanceFactory() {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        MainViewModel(navigationActions) as T
-}
-
-class MainViewModel(private val navigationActions: ParkingNavigationActions) : ViewModel() {
+class MainViewModel(private val navigationActions: NavigateActions) : ViewModel() {
     private val repository = Repository()
 
     val parking = MutableStateFlow(Parking())
