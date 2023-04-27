@@ -3,7 +3,6 @@ package com.hse.parkingapp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,23 +14,22 @@ import com.hse.parkingapp.ui.signin.SignInScreen
 fun ParkingNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = ParkingDestinations.SIGN_IN_ROUTE
+    startDestination: String = Screen.SignScreen.route
 ) {
-    val viewModel: MainViewModel =
-        viewModel(factory = MainViewModelFactory(ParkingNavigationActions(navController)))
+    val viewModel = MainViewModel(NavigateActions(navController))
 
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
     ) {
-        composable(ParkingDestinations.SIGN_IN_ROUTE) {
+        composable(route = Screen.SignScreen.route) {
             SignInScreen(
                 authenticationState = viewModel.authenticationState.collectAsState().value,
                 handleEvent = viewModel::handleAuthenticationEvent
             )
         }
-        composable(ParkingDestinations.MAIN_ROUTE) {
+        composable(route = Screen.MainScreen.route) {
             MainScreen(
                 selectorState = viewModel.selectorState.collectAsState().value,
                 handleEvent = viewModel::handleSelectorEvent,
