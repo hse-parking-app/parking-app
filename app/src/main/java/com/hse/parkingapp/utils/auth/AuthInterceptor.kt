@@ -11,7 +11,9 @@ class AuthInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = tokenManager.getAccessToken()
         val request = chain.request().newBuilder()
-        request.addHeader("Authorization", "Bearer $token")
+        request
+            .addHeader("Accept-Encoding", "identity")
+            .addHeader("Authorization", "Bearer $token")
         return chain.proceed(request.build())
     }
 }
