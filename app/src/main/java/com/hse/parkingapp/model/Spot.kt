@@ -1,6 +1,5 @@
-package com.hse.parkingapp.model.spot
+package com.hse.parkingapp.model
 
-import com.hse.parkingapp.model.canvas.Canvas
 import kotlinx.serialization.Serializable
 
 @Serializable

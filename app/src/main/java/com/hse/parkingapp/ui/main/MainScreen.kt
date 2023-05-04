@@ -25,11 +25,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
-import com.hse.parkingapp.model.parking.Parking
-import com.hse.parkingapp.model.canvas.Canvas
+import com.hse.parkingapp.model.Parking
+import com.hse.parkingapp.model.Canvas
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
-import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetValue
@@ -62,7 +62,7 @@ fun MainScreen(
             }
         )
         SpotCanvas(
-            canvas = parking.levels[0].canvas,
+            canvas = parking.levels[1].canvas,
             spots = parking.spots,
             onSpotClick = { spot ->
                 handleEvent(SelectorEvent.SpotChanged(spot))
@@ -303,7 +303,7 @@ fun SpotCanvas(
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
-    val scale = remember { Animatable(0.75f) }
+    val scale = remember { Animatable(0.6f) }
     val scope = rememberCoroutineScope()
 
     Box(
