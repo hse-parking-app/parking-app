@@ -303,7 +303,7 @@ fun SpotCanvas(
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
-    val scale = remember { Animatable(0.6f) }
+    val scale = remember { Animatable(0.5f) }
     val scope = rememberCoroutineScope()
 
     Box(

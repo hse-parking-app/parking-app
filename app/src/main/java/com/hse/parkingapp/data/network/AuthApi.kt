@@ -1,5 +1,7 @@
 package com.hse.parkingapp.data.network
 
+import com.hse.parkingapp.model.Car
+import com.hse.parkingapp.model.Reservation
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.RefreshRequest
 import com.hse.parkingapp.utils.token.TokenResponse
@@ -34,4 +36,10 @@ interface AuthApi {
     suspend fun updateRefreshToken(
         @Body refreshRequest: RefreshRequest
     ): Response<TokenResponse>
+
+    @GET("cars/employee")
+    suspend fun getEmployeeCars(): Response<List<Car>>
+
+    @GET("reservations/employee")
+    suspend fun getEmployeeReservation(): Response<List<Reservation>>
 }

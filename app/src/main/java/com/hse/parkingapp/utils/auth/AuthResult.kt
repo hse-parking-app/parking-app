@@ -1,7 +1,9 @@
 package com.hse.parkingapp.utils.auth
 
-sealed class AuthResult<T>(val data: T? = null) {
-    class Authorized<T>(data: T? = null): AuthResult<T>(data)
+import com.hse.parkingapp.model.Employee
+
+sealed class AuthResult<T>(val employee: Employee? = null) {
+    class Authorized<T>(employee: Employee? = null): AuthResult<T>(employee)
     class Unauthorized<T>: AuthResult<T>()
     class UnknownError<T>: AuthResult<T>()
 }

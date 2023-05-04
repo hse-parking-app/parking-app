@@ -8,6 +8,7 @@ import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState
@@ -31,6 +32,7 @@ class MainViewModel @Inject constructor(
     val currentScreen = MutableStateFlow(Screen.SignScreen)
     val isAppLaunching = MutableStateFlow(true)
 
+    val employee = MutableStateFlow(Employee())
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
 
@@ -85,6 +87,7 @@ class MainViewModel @Inject constructor(
             )
 
             if (result::class == AuthResult.Authorized::class) {
+                updateEmployee(result.employee)
                 inflateParking()
             }
             resultChannel.send(result)
@@ -99,10 +102,11 @@ class MainViewModel @Inject constructor(
 
             val result = authRepository.authenticate()
             if (result::class == AuthResult.Authorized::class) {
+                updateEmployee(result.employee)
                 inflateParking()
             }
             resultChannel.send(result)
-            delay(50)  // hahaha, classic...
+            delay(700)  // hahaha, classic...
 
             isAppLaunching.value = false
 
@@ -119,7 +123,7 @@ class MainViewModel @Inject constructor(
                 // TODO: implement the logic in future
             }
             is SelectorEvent.SpotChanged -> {
-                updateSlot(selectorEvent.spot)
+                updateSpot(selectorEvent.spot)
             }
             is SelectorEvent.SpotBooked -> {
                 // TODO: implement the logic in future
@@ -127,7 +131,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun updateSlot(spot: Spot) {
+    private fun updateSpot(spot: Spot) {
         selectorState.value = selectorState.value.copy(
             selectedSpot = spot
         )
@@ -138,6 +142,16 @@ class MainViewModel @Inject constructor(
             selectedDay = day
         )
         daysList.value.onItemSelected(day)
+    }
+
+    private fun updateEmployee(newEmployee: Employee?) {
+        employee.value = employee.value.copy(
+            id = newEmployee?.id ?: "",
+            name = newEmployee?.name ?: "Egor",
+            email = newEmployee?.email ?: "egor@egor.egor",
+            cars = newEmployee?.cars ?: mutableListOf(),
+            reservation = newEmployee?.reservation
+        )
     }
 
     private suspend fun inflateParking() {
