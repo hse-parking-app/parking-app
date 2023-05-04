@@ -32,7 +32,8 @@ class AuthAuthenticator @Inject constructor(
                 tokenManager.saveAccessToken(it.accessToken)
                 tokenManager.saveRefreshToken(it.refreshToken)
                 response.request.newBuilder()
-                    .header("Accept-Encoding", "identity")
+                    .addHeader("accept", "*/*")
+                    .addHeader("Content-Type", "application/json")
                     .header("Authorization", "Bearer ${it.accessToken}")
                     .build()
             }
