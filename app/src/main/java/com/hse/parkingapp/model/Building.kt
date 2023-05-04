@@ -1,4 +1,4 @@
-package com.hse.parkingapp.model.building
+package com.hse.parkingapp.model
 
 import kotlinx.serialization.Serializable
 

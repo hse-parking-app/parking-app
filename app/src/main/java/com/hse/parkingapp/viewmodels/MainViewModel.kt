@@ -6,8 +6,8 @@ import com.hse.parkingapp.data.repository.AuthRepository
 import com.hse.parkingapp.data.repository.ParkingRepository
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
-import com.hse.parkingapp.model.parking.Parking
-import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.model.Parking
+import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState

@@ -24,9 +24,11 @@ class DayDataState(
         )
 
         // shift to the next day
-        var tempDate = LocalDateTime.of(
-            todayDate.year, todayDate.month, todayDate.dayOfMonth + 1, 0, 0
-        )
+        var tempDate = todayDate.plusDays(1)
+            .withHour(0)
+            .withMinute(0)
+            .withSecond(0)
+
         while (tempDate.month < todayDate.month + 2) {
             dayDataList.add(
                 DayData(

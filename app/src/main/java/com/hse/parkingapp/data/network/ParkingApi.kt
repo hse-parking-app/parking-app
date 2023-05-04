@@ -1,8 +1,8 @@
 package com.hse.parkingapp.data.network
 
-import com.hse.parkingapp.model.building.Building
-import com.hse.parkingapp.model.level.Level
-import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.model.Building
+import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.Spot
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path

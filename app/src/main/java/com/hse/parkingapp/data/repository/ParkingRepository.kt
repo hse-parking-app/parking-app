@@ -1,9 +1,9 @@
 package com.hse.parkingapp.data.repository
 
 import com.hse.parkingapp.data.network.ParkingApi
-import com.hse.parkingapp.model.building.Building
-import com.hse.parkingapp.model.level.Level
-import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.model.Building
+import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.Spot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
