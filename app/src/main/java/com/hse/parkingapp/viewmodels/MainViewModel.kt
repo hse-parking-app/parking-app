@@ -8,6 +8,7 @@ import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.parking.Parking
 import com.hse.parkingapp.model.spot.Spot
+import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState
 import com.hse.parkingapp.utils.auth.AuthResult
@@ -25,6 +26,10 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val parkingRepository: ParkingRepository
 ) : ViewModel() {
+
+    // Add current screen to control application flow in future
+    val currentScreen = MutableStateFlow(Screen.SignScreen)
+    val isAppLaunching = MutableStateFlow(true)
 
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
@@ -89,7 +94,6 @@ class MainViewModel @Inject constructor(
     }
 
     private fun authenticate() {
-        // TODO: trigger network request
         viewModelScope.launch {
             authenticationState.value = authenticationState.value.copy(isLoading = true)
 
@@ -98,6 +102,9 @@ class MainViewModel @Inject constructor(
                 inflateParking()
             }
             resultChannel.send(result)
+            delay(50)  // hahaha, classic...
+
+            isAppLaunching.value = false
 
             authenticationState.value = authenticationState.value.copy(isLoading = false)
         }
@@ -133,7 +140,6 @@ class MainViewModel @Inject constructor(
         daysList.value.onItemSelected(day)
     }
 
-    // TODO: push it to background thread.
     private suspend fun inflateParking() {
         val building = parkingRepository.getBuildings().body()!![0]
         val levels = parkingRepository.getBuildingLevels(

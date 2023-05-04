@@ -58,9 +58,7 @@ class AuthRepository(
             AuthResult.Authorized()
         } else {
             when (response.code()) {
-                400, 401, 403, 405 -> {
-                    updateAccessToken()
-                }
+                400, 401, 403, 405 -> updateAccessToken()
                 else -> AuthResult.UnknownError()
             }
         }
