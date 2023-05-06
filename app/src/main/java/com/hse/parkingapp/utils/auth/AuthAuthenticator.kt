@@ -18,29 +18,27 @@ class AuthAuthenticator @Inject constructor(
     private val tokenManager: TokenManager
 ): Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        val refreshToken = tokenManager.getRefreshToken()
-
         return runBlocking {
-            val newAccessToken = getNewAccessToken(refreshToken)
+            val newAccessToken = getNewAccessToken()
 
             if (!newAccessToken.isSuccessful || newAccessToken.body() == null) {
-                tokenManager.deleteAccessToken()
-                tokenManager.deleteRefreshToken()
+                return@runBlocking null
             }
 
             newAccessToken.body()?.let {
                 tokenManager.saveAccessToken(it.accessToken)
-                tokenManager.saveRefreshToken(it.refreshToken)
+
                 response.request.newBuilder()
-                    .addHeader("accept", "*/*")
                     .addHeader("Content-Type", "application/json")
-                    .header("Authorization", "Bearer ${it.accessToken}")
+                    .addHeader("Accept-Encoding", "identity")
+                    .addHeader("Authorization", "Bearer ${tokenManager.getAccessToken()}")
+                    .addHeader("accept", "*/*")
                     .build()
             }
         }
     }
 
-    private suspend fun getNewAccessToken(refreshToken: String?): retrofit2.Response<TokenResponse> {
+    private suspend fun getNewAccessToken(): retrofit2.Response<TokenResponse> {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
 
@@ -54,9 +52,10 @@ class AuthAuthenticator @Inject constructor(
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()
+
         val service = retrofit.create(AuthApi::class.java)
         return service.updateAccessToken(
-            refreshRequest = RefreshRequest(refreshToken)
+            refreshRequest = RefreshRequest(tokenManager.getRefreshToken())
         )
     }
 }

@@ -8,32 +8,19 @@ import com.hse.parkingapp.utils.token.TokenResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface AuthApi {
-    @POST("auth/signUp")
-    suspend fun signUp(
-        @Body request: AuthRequest
-    ): Response<Unit>
-
     @POST("auth/login")
     suspend fun signIn(
         @Body request: AuthRequest
     ): Response<TokenResponse>
 
     @GET("auth/whoami")
-    suspend fun authenticate(
-        @Header("Authorization") token: String
-    ): Response<Unit>
+    suspend fun authenticate(): Response<Unit>
 
     @POST("auth/update/access")
     suspend fun updateAccessToken(
-        @Body refreshRequest: RefreshRequest
-    ): Response<TokenResponse>
-
-    @POST("auth/update/refresh")
-    suspend fun updateRefreshToken(
         @Body refreshRequest: RefreshRequest
     ): Response<TokenResponse>
 
