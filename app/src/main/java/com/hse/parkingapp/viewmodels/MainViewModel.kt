@@ -9,7 +9,6 @@ import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
-import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState
 import com.hse.parkingapp.utils.auth.AuthResult
@@ -27,10 +26,6 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val parkingRepository: ParkingRepository
 ) : ViewModel() {
-
-    // Add current screen to control application flow in future
-    val currentScreen = MutableStateFlow(Screen.SignScreen)
-    val isAppLaunching = MutableStateFlow(true)
 
     val employee = MutableStateFlow(Employee())
     val parking = MutableStateFlow(Parking())
@@ -98,19 +93,12 @@ class MainViewModel @Inject constructor(
 
     private fun authenticate() {
         viewModelScope.launch {
-            authenticationState.value = authenticationState.value.copy(isLoading = true)
-
             val result = authRepository.authenticate()
             if (result::class == AuthResult.Authorized::class) {
                 updateEmployee(result.employee)
                 inflateParking()
             }
             resultChannel.send(result)
-            delay(700)  // hahaha, classic...
-
-            isAppLaunching.value = false
-
-            authenticationState.value = authenticationState.value.copy(isLoading = false)
         }
     }
 

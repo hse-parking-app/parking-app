@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.hse.parkingapp.ui.main.MainScreen
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.SignInScreen
+import com.hse.parkingapp.ui.splash.SplashScreen
 import com.hse.parkingapp.viewmodels.MainViewModel
 
 @Composable
@@ -22,34 +23,25 @@ fun NavGraph(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screen.SignScreen.route
+    startDestination: String = Screen.SplashScreen.route
 ) {
     val context = LocalContext.current
 
-    // Block of code which is responsible for navigation between screens
+    // Block of code which is responsible for
+    // initial navigation between splash and other screens
     LaunchedEffect(viewModel, context) {
         viewModel.authResults.collect { result ->
             when(result) {
                 is AuthResult.Authorized -> {
-                    navController.navigate(Screen.MainScreen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            inclusive = true
-                        }
-                    }
+                    navigateToMainScreen(navController)
                 }
-                is AuthResult.Unauthorized -> {
+                is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
                     Toast.makeText(
                         context,
                         "You're not authorized",
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_SHORT
                     ).show()
-                }
-                is AuthResult.UnknownError -> {
-                    Toast.makeText(
-                        context,
-                        "An unknown error occurred",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    navigateToSignScreen(navController)
                 }
             }
         }
@@ -60,6 +52,9 @@ fun NavGraph(
         startDestination = startDestination,
         modifier = modifier
     ) {
+        composable(route = Screen.SplashScreen.route) {
+            SplashScreen()
+        }
         composable(route = Screen.SignScreen.route) {
             SignInScreen(
                 authenticationState = viewModel.authenticationState.collectAsState().value,
@@ -73,6 +68,22 @@ fun NavGraph(
                 parking = viewModel.parking.collectAsState().value,
                 dayDataState = viewModel.daysList.collectAsState().value
             )
+        }
+    }
+}
+
+private fun navigateToMainScreen(navController: NavHostController) {
+    navController.navigate(Screen.MainScreen.route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            inclusive = true
+        }
+    }
+}
+
+fun navigateToSignScreen(navController: NavHostController) {
+    navController.navigate(Screen.SignScreen.route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            inclusive = true
         }
     }
 }
