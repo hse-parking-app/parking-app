@@ -62,7 +62,7 @@ fun MainScreen(
             }
         )
         SpotCanvas(
-            canvas = parking.levels[1].canvas,
+            canvas = parking.levels[0].canvas,
             spots = parking.spots,
             onSpotClick = { spot ->
                 handleEvent(SelectorEvent.SpotChanged(spot))
@@ -347,8 +347,9 @@ fun SpotCanvas(
                     width = spot.canvas.width,
                     height = spot.canvas.height,
                     parkingNumber = spot.parkingNumber,
+                    isAvailable = spot.isAvailable,
                     isFree = spot.isFree,
-                    onClick = { onSpotClick(spot) }
+                    onClick = { if (spot.isFree && spot.isAvailable) onSpotClick(spot) }
                 )
             }
         }
@@ -395,7 +396,7 @@ fun SpotButton(
     var isReleased by remember { mutableStateOf(false) }  // ???
     val sizeScale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
     val offsetXAnimated by animateIntAsState(
-        targetValue = if (isReleased && !isFree) offsetX + 10 else offsetX,
+        targetValue = if (isReleased && !isAvailable && !isFree) offsetX + 10 else offsetX,
         animationSpec = spring(
             dampingRatio = 0.3f,
             stiffness = 5000f
@@ -420,7 +421,7 @@ fun SpotButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFree) MaterialTheme.colorScheme.tertiary
+            containerColor = if (isFree && isAvailable) MaterialTheme.colorScheme.tertiary
                 else MaterialTheme.colorScheme.tertiaryContainer,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),

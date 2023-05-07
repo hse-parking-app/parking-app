@@ -157,7 +157,9 @@ fun Login(
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 3.dp,
+                    modifier = Modifier.then(Modifier.size(32.dp))
                 )
             } else {
                 Text(
