@@ -7,7 +7,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +17,7 @@ import com.hse.parkingapp.ui.signin.SignInScreen
 import com.hse.parkingapp.ui.splash.SplashScreen
 import com.hse.parkingapp.ui.buildings.BuildingsScreen
 import com.hse.parkingapp.viewmodels.MainViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun NavGraph(
@@ -27,18 +27,21 @@ fun NavGraph(
     startDestination: String = Screen.SplashScreen.route
 ) {
     val context = LocalContext.current
+    val currentScreen = viewModel.currentScreen.collectAsState().value.screen
 
     // Block of code which is responsible for
-    // initial navigation between splash and other screens
-    LaunchedEffect(viewModel, context) {
-        viewModel.authResults.collect { result ->
+    // navigation between screens and
+    // making toast messages
+    LaunchedEffect(viewModel, context, currentScreen) {
+        when(currentScreen) {
+            is Screen.SplashScreen -> navigateToSplashScreen(navController)
+            is Screen.BuildingsScreen -> navigateToBuildingsScreen(navController)
+            is Screen.SignScreen -> navigateToSignScreen(navController)
+            is Screen.MainScreen -> navigateToMainScreen(navController)
+        }
+
+        viewModel.authResults.collectLatest { result ->
             when(result) {
-                is AuthResult.Prepared -> {
-                    navigateToMainScreen(navController)
-                }
-                is AuthResult.Authorized -> {
-                    navigateToTransitScreen(navController)
-                }
                 is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
                     Toast.makeText(
                         context,
@@ -47,6 +50,7 @@ fun NavGraph(
                     ).show()
                     navigateToSignScreen(navController)
                 }
+                else -> {  }
             }
         }
     }
@@ -84,24 +88,24 @@ fun NavGraph(
 
 private fun navigateToMainScreen(navController: NavHostController) {
     navController.navigate(Screen.MainScreen.route) {
-        popUpTo(navController.graph.findStartDestination().id) {
-            inclusive = true
-        }
+        popUpTo(0)
     }
 }
 
 fun navigateToSignScreen(navController: NavHostController) {
     navController.navigate(Screen.SignScreen.route) {
-        popUpTo(navController.graph.findStartDestination().id) {
-            inclusive = true
-        }
+        popUpTo(0)
     }
 }
 
-fun navigateToTransitScreen(navController: NavHostController) {
+fun navigateToBuildingsScreen(navController: NavHostController) {
     navController.navigate(Screen.BuildingsScreen.route) {
-        popUpTo(navController.graph.findStartDestination().id) {
-            inclusive = true
-        }
+        popUpTo(0)
+    }
+}
+
+fun navigateToSplashScreen(navController: NavHostController) {
+    navController.navigate(Screen.SplashScreen.route) {
+        popUpTo(0)
     }
 }

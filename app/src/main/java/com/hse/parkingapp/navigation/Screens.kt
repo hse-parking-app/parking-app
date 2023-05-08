@@ -6,3 +6,7 @@ sealed class Screen(val route: String) {
     object SignScreen : Screen("sign")
     object MainScreen : Screen("main")
 }
+
+data class CurrentScreen(
+    val screen: Screen = Screen.SplashScreen
+)

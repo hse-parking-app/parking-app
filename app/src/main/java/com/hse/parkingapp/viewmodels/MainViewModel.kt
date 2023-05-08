@@ -11,6 +11,8 @@ import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.navigation.CurrentScreen
+import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.buildings.BuildingsEvent
 import com.hse.parkingapp.ui.buildings.BuildingsState
 import com.hse.parkingapp.ui.main.SelectorEvent
@@ -33,6 +35,12 @@ class MainViewModel @Inject constructor(
     private val parkingManager: ParkingManager
 ) : ViewModel() {
 
+    // These channels are responsible for network error handling
+    private val resultChannel = Channel<AuthResult<Unit>>()
+    val authResults = resultChannel.receiveAsFlow()
+
+    val currentScreen = MutableStateFlow(CurrentScreen())
+
     val employee = MutableStateFlow(Employee())
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
@@ -43,9 +51,6 @@ class MainViewModel @Inject constructor(
     ))
 
     val buildingsState = MutableStateFlow(BuildingsState())
-
-    private val resultChannel = Channel<AuthResult<Unit>>()
-    val authResults = resultChannel.receiveAsFlow()
 
     init {
         authenticate()
@@ -91,9 +96,9 @@ class MainViewModel @Inject constructor(
 
             if (result::class == AuthResult.Authorized::class) {
                 updateEmployee(result.employee)
-//                inflateParking()
-
                 inflateBuildings()
+
+                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
             }
             resultChannel.send(result)
 
@@ -108,12 +113,22 @@ class MainViewModel @Inject constructor(
 
             if (result::class == AuthResult.Authorized::class) {
                 inflateBuildings()
+                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
             } else if (result::class == AuthResult.Prepared::class) {
                 inflateParking()
+                changeCurrentScreen(newScreen = Screen.MainScreen)
+            } else {
+                changeCurrentScreen(newScreen = Screen.SignScreen)
             }
 
             resultChannel.send(result)
         }
+    }
+
+    private fun changeCurrentScreen(newScreen: Screen) {
+        currentScreen.value = currentScreen.value.copy(
+            screen = newScreen
+        )
     }
 
     fun handleSelectorEvent(selectorEvent: SelectorEvent) {
@@ -190,6 +205,7 @@ class MainViewModel @Inject constructor(
                 spots = spots ?: listOf()
             )
 
+            changeCurrentScreen(newScreen = Screen.MainScreen)
             resultChannel.send(authRepository.authenticate())
 
             buildingsState.value = buildingsState.value.copy(isLoading = false)
