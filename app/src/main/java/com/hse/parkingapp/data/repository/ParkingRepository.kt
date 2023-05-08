@@ -17,6 +17,12 @@ class ParkingRepository(
         }
     }
 
+    suspend fun getLevel(levelId: String): Response<Level> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.getLevel(levelId)
+        }
+    }
+
     suspend fun getBuildingLevels(buildingId: String): Response<List<Level>> {
         return withContext(Dispatchers.IO) {
             parkingApi.getBuildingLevels(buildingId)

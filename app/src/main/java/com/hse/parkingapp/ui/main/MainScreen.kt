@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
-import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Canvas
+import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
@@ -62,7 +62,7 @@ fun MainScreen(
             }
         )
         SpotCanvas(
-            canvas = parking.levels[0].canvas,
+            canvas = parking.level.canvas,
             spots = parking.spots,
             onSpotClick = { spot ->
                 handleEvent(SelectorEvent.SpotChanged(spot))
