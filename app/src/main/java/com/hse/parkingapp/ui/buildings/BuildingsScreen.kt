@@ -1,5 +1,6 @@
 package com.hse.parkingapp.ui.buildings
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -89,6 +91,11 @@ fun BuildingButton(
     building: Building = Building(),
     onBuildingClick: (Building) -> Unit = {  }
 ) {
+    val buttonColor by animateColorAsState(
+        if (building.isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant
+    )
+
     Button(
         modifier = modifier
             .padding(vertical = 4.dp)
@@ -96,8 +103,7 @@ fun BuildingButton(
         onClick = { onBuildingClick(building) },
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (building.isSelected) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = buttonColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {

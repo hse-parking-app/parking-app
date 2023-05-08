@@ -2,6 +2,7 @@ package com.hse.parkingapp.ui.main
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.*
@@ -449,6 +450,11 @@ fun DayButton(
     dayData: DayData = DayData(),
     onDayDataClick: (DayData) -> Unit = {  }
 ) {
+    val buttonColor by animateColorAsState(
+        if (dayData.isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
     Button(
         onClick = { onDayDataClick(dayData) },
         modifier = Modifier
@@ -462,8 +468,7 @@ fun DayButton(
         border = if(dayData.isToday) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (dayData.isSelected)
-                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = buttonColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         contentPadding = PaddingValues(0.dp)
