@@ -16,6 +16,7 @@ import com.hse.parkingapp.ui.main.MainScreen
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.SignInScreen
 import com.hse.parkingapp.ui.splash.SplashScreen
+import com.hse.parkingapp.ui.buildings.BuildingsScreen
 import com.hse.parkingapp.viewmodels.MainViewModel
 
 @Composable
@@ -32,8 +33,11 @@ fun NavGraph(
     LaunchedEffect(viewModel, context) {
         viewModel.authResults.collect { result ->
             when(result) {
-                is AuthResult.Authorized -> {
+                is AuthResult.Prepared -> {
                     navigateToMainScreen(navController)
+                }
+                is AuthResult.Authorized -> {
+                    navigateToTransitScreen(navController)
                 }
                 is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
                     Toast.makeText(
@@ -54,6 +58,12 @@ fun NavGraph(
     ) {
         composable(route = Screen.SplashScreen.route) {
             SplashScreen()
+        }
+        composable(route = Screen.BuildingsScreen.route) {
+            BuildingsScreen(
+                buildingsState = viewModel.buildingsState.collectAsState().value,
+                handleEvent = viewModel::handleBuildingsEvent
+            )
         }
         composable(route = Screen.SignScreen.route) {
             SignInScreen(
@@ -82,6 +92,14 @@ private fun navigateToMainScreen(navController: NavHostController) {
 
 fun navigateToSignScreen(navController: NavHostController) {
     navController.navigate(Screen.SignScreen.route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            inclusive = true
+        }
+    }
+}
+
+fun navigateToTransitScreen(navController: NavHostController) {
+    navController.navigate(Screen.BuildingsScreen.route) {
         popUpTo(navController.graph.findStartDestination().id) {
             inclusive = true
         }

@@ -10,4 +10,5 @@
     <string name="time_and_date">Время / дата</string>
     <string name="car">Автомобиль</string>
     <string name="book">Забронировать</string>
+    <string name="continue_">Продолжить</string>
 </resources>

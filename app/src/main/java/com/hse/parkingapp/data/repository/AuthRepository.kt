@@ -7,11 +7,13 @@ import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Reservation
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.AuthResult
+import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
 
 class AuthRepository(
     private val authApi: AuthApi,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val parkingManager: ParkingManager
 ) {
     suspend fun signIn(email: String, password: String): AuthResult<Unit> {
         val response = authApi.signIn(
@@ -40,7 +42,12 @@ class AuthRepository(
 
         return if (response.isSuccessful) {
             val employee = getEmployeeInfo()
-            AuthResult.Authorized(employee = employee)
+
+            if (parkingManager.getBuildingId().isNullOrEmpty()) {
+                AuthResult.Authorized(employee = employee)
+            } else {
+                AuthResult.Prepared(employee = employee)
+            }
         } else {
             when (response.code()) {
                 400, 401, 403, 405 -> AuthResult.Unauthorized()

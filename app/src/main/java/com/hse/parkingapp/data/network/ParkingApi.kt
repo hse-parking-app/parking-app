@@ -14,6 +14,9 @@ interface ParkingApi {
     @GET("building/{buildingId}/levels")
     suspend fun getBuildingLevels(@Path("buildingId") buildingId: String): Response<List<Level>>
 
+    @GET("parkingLevels/{levelId}")
+    suspend fun getLevel(@Path("levelId") levelId: String): Response<Level>
+
     @GET("parkingLevels/{levelId}/spots")
     suspend fun getLevelSpots(@Path("levelId") levelId: String): Response<List<Spot>>
 }

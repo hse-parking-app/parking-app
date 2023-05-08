@@ -9,11 +9,16 @@ import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
+import com.hse.parkingapp.model.Building
+import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.ui.buildings.BuildingsEvent
+import com.hse.parkingapp.ui.buildings.BuildingsState
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.AuthenticationEvent
 import com.hse.parkingapp.ui.signin.AuthenticationState
+import com.hse.parkingapp.utils.parking.ParkingManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -24,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val parkingRepository: ParkingRepository
+    private val parkingRepository: ParkingRepository,
+    private val parkingManager: ParkingManager
 ) : ViewModel() {
 
     val employee = MutableStateFlow(Employee())
@@ -35,6 +41,8 @@ class MainViewModel @Inject constructor(
     val selectorState = MutableStateFlow(SelectorState(
         selectedDay = daysList.value.dayDataList.first()
     ))
+
+    val buildingsState = MutableStateFlow(BuildingsState())
 
     private val resultChannel = Channel<AuthResult<Unit>>()
     val authResults = resultChannel.receiveAsFlow()
@@ -83,7 +91,9 @@ class MainViewModel @Inject constructor(
 
             if (result::class == AuthResult.Authorized::class) {
                 updateEmployee(result.employee)
-                inflateParking()
+//                inflateParking()
+
+                inflateBuildings()
             }
             resultChannel.send(result)
 
@@ -94,10 +104,14 @@ class MainViewModel @Inject constructor(
     private fun authenticate() {
         viewModelScope.launch {
             val result = authRepository.authenticate()
+            updateEmployee(result.employee)
+
             if (result::class == AuthResult.Authorized::class) {
-                updateEmployee(result.employee)
+                inflateBuildings()
+            } else if (result::class == AuthResult.Prepared::class) {
                 inflateParking()
             }
+
             resultChannel.send(result)
         }
     }
@@ -142,17 +156,85 @@ class MainViewModel @Inject constructor(
         )
     }
 
+    fun handleBuildingsEvent(buildingsEvent: BuildingsEvent) {
+        when(buildingsEvent) {
+            is BuildingsEvent.OnBuildingClick -> {
+                onBuildingClick(buildingsEvent.building)
+            }
+            is BuildingsEvent.OnContinueClick -> {
+                onContinueClick()
+            }
+        }
+    }
+
+    private fun onContinueClick() {
+        viewModelScope.launch {
+            buildingsState.value = buildingsState.value.copy(isLoading = true)
+
+            parkingManager.saveBuildingId(
+                id = buildingsState.value.selectedBuilding?.id
+            )
+
+            val levels = parkingRepository.getBuildingLevels(
+                buildingId = parkingManager.getBuildingId() ?: ""
+            ).body()
+            parkingManager.saveLevelId(levels?.first()?.id)
+
+            val spots = parkingRepository.getLevelSpots(
+                levelId = levels?.first()?.id ?: ""
+            ).body()
+
+            val firstLevel = levels?.first() ?: Level()
+            parking.value = parking.value.copy(
+                level = firstLevel,
+                spots = spots ?: listOf()
+            )
+
+            resultChannel.send(authRepository.authenticate())
+
+            buildingsState.value = buildingsState.value.copy(isLoading = false)
+        }
+    }
+
+    private suspend fun inflateBuildings() {
+        val response = parkingRepository.getBuildings()
+
+        if (response.isSuccessful) {
+            buildingsState.value.inflateBuildingList(response.body() ?: listOf())
+
+            if (!response.body().isNullOrEmpty()) {
+                val firstBuilding = buildingsState.value.buildingList.first()
+
+                buildingsState.value = buildingsState.value.copy(
+                    selectedBuilding = firstBuilding
+                )
+            }
+        }
+    }
+
     private suspend fun inflateParking() {
-        val building = parkingRepository.getBuildings().body()!![0]
-        val levels = parkingRepository.getBuildingLevels(
-            buildingId = building.id
-        ).body()!!
-        val spots = parkingRepository.getLevelSpots(levels[1].id).body()!!
+        parkingManager.saveBuildingId(
+            id = buildingsState.value.selectedBuilding?.id
+        )
+
+        val level = parkingRepository.getLevel(
+            levelId = parkingManager.getLevelId() ?: ""
+        ).body()
+
+        val spots = parkingRepository.getLevelSpots(
+            levelId = level?.id ?: ""
+        ).body()
 
         parking.value = parking.value.copy(
-            building = building,
-            levels = levels,
-            spots = spots
+            level = level ?: Level(),
+            spots = spots ?: listOf()
+        )
+    }
+
+    private fun onBuildingClick(building: Building) {
+        buildingsState.value.onItemSelected(building)
+        buildingsState.value = buildingsState.value.copy(
+            selectedBuilding = building
         )
     }
 }

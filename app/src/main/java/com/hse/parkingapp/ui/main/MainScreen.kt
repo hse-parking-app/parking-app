@@ -2,6 +2,7 @@ package com.hse.parkingapp.ui.main
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.*
@@ -25,8 +26,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
-import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Canvas
+import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
@@ -62,7 +63,7 @@ fun MainScreen(
             }
         )
         SpotCanvas(
-            canvas = parking.levels[1].canvas,
+            canvas = parking.level.canvas,
             spots = parking.spots,
             onSpotClick = { spot ->
                 handleEvent(SelectorEvent.SpotChanged(spot))
@@ -347,8 +348,9 @@ fun SpotCanvas(
                     width = spot.canvas.width,
                     height = spot.canvas.height,
                     parkingNumber = spot.parkingNumber,
+                    isAvailable = spot.isAvailable,
                     isFree = spot.isFree,
-                    onClick = { onSpotClick(spot) }
+                    onClick = { if (spot.isFree && spot.isAvailable) onSpotClick(spot) }
                 )
             }
         }
@@ -395,7 +397,7 @@ fun SpotButton(
     var isReleased by remember { mutableStateOf(false) }  // ???
     val sizeScale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
     val offsetXAnimated by animateIntAsState(
-        targetValue = if (isReleased && !isFree) offsetX + 10 else offsetX,
+        targetValue = if (isReleased && !isAvailable && !isFree) offsetX + 10 else offsetX,
         animationSpec = spring(
             dampingRatio = 0.3f,
             stiffness = 5000f
@@ -420,7 +422,7 @@ fun SpotButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFree) MaterialTheme.colorScheme.tertiary
+            containerColor = if (isFree && isAvailable) MaterialTheme.colorScheme.tertiary
                 else MaterialTheme.colorScheme.tertiaryContainer,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
@@ -448,6 +450,11 @@ fun DayButton(
     dayData: DayData = DayData(),
     onDayDataClick: (DayData) -> Unit = {  }
 ) {
+    val buttonColor by animateColorAsState(
+        if (dayData.isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
     Button(
         onClick = { onDayDataClick(dayData) },
         modifier = Modifier
@@ -461,8 +468,7 @@ fun DayButton(
         border = if(dayData.isToday) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (dayData.isSelected)
-                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = buttonColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         contentPadding = PaddingValues(0.dp)

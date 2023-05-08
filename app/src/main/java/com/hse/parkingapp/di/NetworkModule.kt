@@ -9,6 +9,7 @@ import com.hse.parkingapp.data.repository.AuthRepository
 import com.hse.parkingapp.data.repository.ParkingRepository
 import com.hse.parkingapp.utils.auth.AuthAuthenticator
 import com.hse.parkingapp.utils.auth.AuthInterceptor
+import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -36,6 +37,11 @@ object NetworkModule {
     @Singleton
     fun provideTokenManager(preferences: SharedPreferences): TokenManager =
         TokenManager(preferences)
+
+    @Provides
+    @Singleton
+    fun provideParkingManager(preferences: SharedPreferences): ParkingManager =
+        ParkingManager(preferences)
 
     @Provides
     @Singleton
@@ -93,9 +99,10 @@ object NetworkModule {
     @Singleton
     fun provideAuthRepository(
         api: AuthApi,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        parkingManager: ParkingManager
     ): AuthRepository {
-        return AuthRepository(api, tokenManager)
+        return AuthRepository(api, tokenManager, parkingManager)
     }
 
     @Provides

@@ -71,4 +71,8 @@ val Typography = Typography(
         fontFamily = sfProText,
         fontSize = 17.sp
     ),
+    displayMedium = TextStyle(
+        fontFamily = sfProDisplay,
+        fontSize = 28.sp
+    )
 )
