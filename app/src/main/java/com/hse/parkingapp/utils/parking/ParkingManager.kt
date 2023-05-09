@@ -5,7 +5,8 @@ import javax.inject.Inject
 
 enum class Parking(val key: String) {
     BUILDING(key = "building_id"),
-    LEVEL(key = "level_id")
+    LEVEL(key = "level_id"),
+    HOURS(key = "hours")
 }
 
 class ParkingManager @Inject constructor(
@@ -31,6 +32,18 @@ class ParkingManager @Inject constructor(
         id?.let {
             prefs.edit()
                 .putString(Parking.LEVEL.key, it)
+                .apply()
+        }
+    }
+
+    fun getHoursDifference(): Long {
+        return prefs.getLong(Parking.HOURS.key, 0)
+    }
+
+    fun saveHoursDifference(difference: Long?) {
+        difference?.let {
+            prefs.edit()
+                .putLong(Parking.HOURS.key, it)
                 .apply()
         }
     }

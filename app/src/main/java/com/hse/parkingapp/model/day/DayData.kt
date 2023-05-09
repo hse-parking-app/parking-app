@@ -1,13 +1,13 @@
 package com.hse.parkingapp.model.day
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.*
 
 // TODO: think about leap year processing
 data class DayData(
     val id: Int = 0,
-    val date: LocalDateTime = LocalDateTime.now(),
+    val date: ZonedDateTime = ZonedDateTime.now(),
     val isToday: Boolean = false,
     val isLastDayOfMonth: Boolean = date.dayOfMonth == date.month.length(false),
     val isSelected: Boolean = false

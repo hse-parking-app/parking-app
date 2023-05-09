@@ -3,33 +3,34 @@ package com.hse.parkingapp.model.day
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.*
 
 class DayDataState(
+    currentTime: ZonedDateTime = ZonedDateTime.now(),
     val dayDataList: SnapshotStateList<DayData> = mutableStateListOf()
 ) {
     init {
-        val todayDate = LocalDateTime.now()
         var id = 0
 
         // add first day in date selector
         dayDataList.add(
             DayData(
                 id = id++,
-                date = todayDate,
+                date = currentTime,
                 isToday = true,
                 isSelected = true
             )
         )
 
         // shift to the next day
-        var tempDate = todayDate.plusDays(1)
+        var tempDate = currentTime.plusDays(1)
             .withHour(0)
             .withMinute(0)
             .withSecond(0)
 
-        while (tempDate.month < todayDate.month + 2) {
+        while (tempDate.month < currentTime.month + 2) {
             dayDataList.add(
                 DayData(
                     id = id++,

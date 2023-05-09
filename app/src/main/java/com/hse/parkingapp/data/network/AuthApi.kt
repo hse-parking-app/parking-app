@@ -1,6 +1,7 @@
 package com.hse.parkingapp.data.network
 
 import com.hse.parkingapp.model.Car
+import com.hse.parkingapp.model.CurrentTime
 import com.hse.parkingapp.model.Reservation
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.RefreshRequest
@@ -29,4 +30,7 @@ interface AuthApi {
 
     @GET("reservations/employee")
     suspend fun getEmployeeReservation(): Response<List<Reservation>>
+
+    @GET("time/current")
+    suspend fun getCurrentTime(): Response<CurrentTime>
 }

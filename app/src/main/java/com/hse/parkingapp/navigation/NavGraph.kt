@@ -1,5 +1,6 @@
 package com.hse.parkingapp.navigation
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,12 +43,9 @@ fun NavGraph(
 
         viewModel.authResults.collectLatest { result ->
             when(result) {
+                is AuthResult.WrongTime -> showErrorToast(context, "Wrong local time")
                 is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
-                    Toast.makeText(
-                        context,
-                        "You're not authorized",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showErrorToast(context, "You're not authorized")
                     navigateTo(Screen.SignScreen, navController)
                 }
                 else -> {  }
@@ -101,3 +99,6 @@ private fun navigateTo(screen: Screen, navController: NavHostController) {
         popUpTo(0)
     }
 }
+
+private fun showErrorToast(context: Context, message: String) =
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

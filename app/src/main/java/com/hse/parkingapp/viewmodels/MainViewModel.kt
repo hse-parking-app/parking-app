@@ -26,6 +26,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -125,6 +126,12 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private suspend fun inflateDaysRow() {
+        daysList.value = DayDataState(
+            currentTime = authRepository.getCurrentTime() ?: ZonedDateTime.now()
+        )
+    }
+
     private fun changeCurrentScreen(newScreen: Screen) {
         currentScreen.value = currentScreen.value.copy(
             screen = newScreen
@@ -195,15 +202,7 @@ class MainViewModel @Inject constructor(
             ).body()
             parkingManager.saveLevelId(levels?.first()?.id)
 
-            val spots = parkingRepository.getLevelSpots(
-                levelId = levels?.first()?.id ?: ""
-            ).body()
-
-            val firstLevel = levels?.first() ?: Level()
-            parking.value = parking.value.copy(
-                level = firstLevel,
-                spots = spots ?: listOf()
-            )
+            inflateParking()
 
             changeCurrentScreen(newScreen = Screen.MainScreen)
             resultChannel.send(authRepository.authenticate())
@@ -229,9 +228,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun inflateParking() {
-        parkingManager.saveBuildingId(
-            id = buildingsState.value.selectedBuilding?.id
-        )
+        inflateDaysRow()
 
         val level = parkingRepository.getLevel(
             levelId = parkingManager.getLevelId() ?: ""
