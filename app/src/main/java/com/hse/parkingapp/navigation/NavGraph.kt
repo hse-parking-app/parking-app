@@ -34,10 +34,10 @@ fun NavGraph(
     // making toast messages
     LaunchedEffect(viewModel, context, currentScreen) {
         when(currentScreen) {
-            is Screen.SplashScreen -> navigateToSplashScreen(navController)
-            is Screen.BuildingsScreen -> navigateToBuildingsScreen(navController)
-            is Screen.SignScreen -> navigateToSignScreen(navController)
-            is Screen.MainScreen -> navigateToMainScreen(navController)
+            is Screen.SplashScreen -> navigateTo(Screen.SplashScreen, navController)
+            is Screen.BuildingsScreen -> navigateTo(Screen.BuildingsScreen, navController)
+            is Screen.SignScreen -> navigateTo(Screen.SignScreen, navController)
+            is Screen.MainScreen -> navigateTo(Screen.MainScreen, navController)
         }
 
         viewModel.authResults.collectLatest { result ->
@@ -48,7 +48,7 @@ fun NavGraph(
                         "You're not authorized",
                         Toast.LENGTH_SHORT
                     ).show()
-                    navigateToSignScreen(navController)
+                    navigateTo(Screen.SignScreen, navController)
                 }
                 else -> {  }
             }
@@ -86,26 +86,18 @@ fun NavGraph(
     }
 }
 
-private fun navigateToMainScreen(navController: NavHostController) {
-    navController.navigate(Screen.MainScreen.route) {
-        popUpTo(0)
-    }
-}
-
-fun navigateToSignScreen(navController: NavHostController) {
-    navController.navigate(Screen.SignScreen.route) {
-        popUpTo(0)
-    }
-}
-
-fun navigateToBuildingsScreen(navController: NavHostController) {
-    navController.navigate(Screen.BuildingsScreen.route) {
-        popUpTo(0)
-    }
-}
-
-fun navigateToSplashScreen(navController: NavHostController) {
-    navController.navigate(Screen.SplashScreen.route) {
+/**
+ * Navigates to the specified [screen] using the provided [navController].
+ *
+ * This function is used to handle navigation between different screens of the app.
+ * It takes a [Screen] object as an input, which represents the destination screen, and a
+ * [NavHostController] to manage navigation.
+ *
+ * @param screen The destination [Screen] to navigate to.
+ * @param navController The [NavHostController] used for navigation.
+ */
+private fun navigateTo(screen: Screen, navController: NavHostController) {
+    navController.navigate(screen.route) {
         popUpTo(0)
     }
 }
