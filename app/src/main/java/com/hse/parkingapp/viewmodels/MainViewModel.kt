@@ -11,6 +11,8 @@ import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.time.TimeData
+import com.hse.parkingapp.model.time.TimeDataState
 import com.hse.parkingapp.navigation.CurrentScreen
 import com.hse.parkingapp.navigation.Screen
 import com.hse.parkingapp.ui.buildings.BuildingsEvent
@@ -45,6 +47,7 @@ class MainViewModel @Inject constructor(
     val employee = MutableStateFlow(Employee())
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
+    val timesList = MutableStateFlow(TimeDataState())
 
     val authenticationState = MutableStateFlow(AuthenticationState())
     val selectorState = MutableStateFlow(SelectorState(
@@ -130,6 +133,16 @@ class MainViewModel @Inject constructor(
         daysList.value = DayDataState(
             currentTime = authRepository.getCurrentTime() ?: ZonedDateTime.now()
         )
+        updateDay(daysList.value.dayDataList.first())
+
+        inflateTimesRow()
+    }
+
+    private fun inflateTimesRow() {
+        timesList.value = TimeDataState(
+            currentTime = selectorState.value.selectedDay.date
+        )
+        updateTime(timesList.value.timeDataList.first())
     }
 
     private fun changeCurrentScreen(newScreen: Screen) {
@@ -144,15 +157,25 @@ class MainViewModel @Inject constructor(
                 updateDay(selectorEvent.day)
             }
             is SelectorEvent.TimeChanged -> {
-                // TODO: implement the logic in future
+                updateTime(selectorEvent.time)
             }
             is SelectorEvent.SpotChanged -> {
                 updateSpot(selectorEvent.spot)
             }
             is SelectorEvent.SpotBooked -> {
                 // TODO: implement the logic in future
+                //  1) if user does not have a car:
+                //      -> show toast "You can't book a spot without car!"
             }
         }
+    }
+
+    private fun updateTime(time: TimeData) {
+        selectorState.value = selectorState.value.copy(
+            selectedTime = time
+        )
+        timesList.value.onItemSelected(time)
+        // TODO: update parking spots according to selected time period
     }
 
     private fun updateSpot(spot: Spot) {
@@ -166,6 +189,8 @@ class MainViewModel @Inject constructor(
             selectedDay = day
         )
         daysList.value.onItemSelected(day)
+
+        inflateTimesRow()
     }
 
     private fun updateEmployee(newEmployee: Employee?) {

@@ -78,7 +78,8 @@ fun NavGraph(
                 selectorState = viewModel.selectorState.collectAsState().value,
                 handleEvent = viewModel::handleSelectorEvent,
                 parking = viewModel.parking.collectAsState().value,
-                dayDataState = viewModel.daysList.collectAsState().value
+                dayDataState = viewModel.daysList.collectAsState().value,
+                timeDataState = viewModel.timesList.collectAsState().value
             )
         }
     }

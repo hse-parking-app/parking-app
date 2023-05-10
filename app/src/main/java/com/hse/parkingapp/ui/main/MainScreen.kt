@@ -31,6 +31,8 @@ import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.time.TimeData
+import com.hse.parkingapp.model.time.TimeDataState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetValue
@@ -48,7 +50,8 @@ fun MainScreen(
     selectorState: SelectorState = SelectorState(),
     parking: Parking = Parking(),
     handleEvent: (event: SelectorEvent) -> Unit = {  },
-    dayDataState: DayDataState = DayDataState()
+    dayDataState: DayDataState = DayDataState(),
+    timeDataState: TimeDataState = TimeDataState()
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
@@ -60,6 +63,10 @@ fun MainScreen(
             dayDataState = dayDataState,
             onDayDataClick = { day ->
                 handleEvent(SelectorEvent.DayChanged(day))
+            },
+            timeDataState = timeDataState,
+            onTimeDataClick = { time ->
+                handleEvent(SelectorEvent.TimeChanged(time))
             }
         )
         SpotCanvas(
@@ -75,8 +82,7 @@ fun MainScreen(
     }
     BottomSheet(
         bottomSheetState = bottomSheetState,
-        parkingNumber = selectorState.selectedSpot?.parkingNumber,
-        parkingDay = selectorState.selectedDay.toString(),
+        selectorState = selectorState,
         onBookClick = {
             scope.launch { bottomSheetState.hide() }
             // TODO: perform booking operation with a server
@@ -91,8 +97,7 @@ fun BottomSheet(
     bottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     ),
-    parkingNumber: String? = "",
-    parkingDay: String? = "",
+    selectorState: SelectorState = SelectorState(),
     onBookClick: () -> Unit = {  }
 ) {
     ModalBottomSheetLayout(
@@ -117,13 +122,12 @@ fun BottomSheet(
                         feature = R.string.place,
                         content = {
                             Text(
-                                text = parkingNumber ?: "",
+                                text = selectorState.selectedSpot?.parkingNumber ?: "",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     )
-                    // TODO: make a color for divider in a palette
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
                     BottomSheetFeature(
                         feature = R.string.time_and_date,
@@ -132,13 +136,12 @@ fun BottomSheet(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    // TODO: change sample data here
-                                    text = "с 10:00 до 19:00",
+                                    text = selectorState.selectedTime.getPeriod(),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = parkingDay ?: "",
+                                    text = selectorState.selectedDay.toString(),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -146,6 +149,7 @@ fun BottomSheet(
                         }
                     )
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
+                    // TODO: insert information about employee's car
                     BottomSheetFeature(
                         feature = R.string.car,
                         content = {
@@ -210,7 +214,9 @@ fun BottomSheetFeature(
 fun DateChooser(
     modifier: Modifier = Modifier,
     dayDataState: DayDataState = DayDataState(),
-    onDayDataClick: (day: DayData) -> Unit = {  }
+    onDayDataClick: (day: DayData) -> Unit = {  },
+    timeDataState: TimeDataState = TimeDataState(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
 ) {
     val listState = rememberLazyListState()
     val monthName by remember {
@@ -237,7 +243,10 @@ fun DateChooser(
                 daysList = dayDataState.dayDataList.toList(),
                 onDayDataClick = { onDayDataClick(it) }
             )
-            TimesRow()
+            TimesRow(
+                timesList = timeDataState.timeDataList.toList(),
+                onTimeDataClick = { onTimeDataClick(it) }
+            )
         }
     }
 }
@@ -267,9 +276,9 @@ fun DaysRow(
         state = listState,
         contentPadding = PaddingValues(start = 16.dp)
     ) {
-        items(daysList) { item ->
+        items(daysList) { day ->
             DayButton(
-                dayData = item,
+                dayData = day,
                 onDayDataClick = { dayData -> onDayDataClick(dayData) }
             )
         }
@@ -277,21 +286,20 @@ fun DaysRow(
 }
 
 @Composable
-fun TimesRow() {
-    val listState = rememberLazyListState()
-
+fun TimesRow(
+    listState: LazyListState = rememberLazyListState(),
+    timesList: List<TimeData> = listOf(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
+) {
     LazyRow(
         state = listState,
         contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
     ) {
-        item {
-            TimeButton(time = "9:00 - 18:00")
-        }
-        item {
-            TimeButton(time = "10:00 - 19:00")
-        }
-        item {
-            TimeButton(time = "11:00 - 20:00")
+        items(timesList) { time ->
+            TimeButton(
+                timeData = time,
+                onTimeDataClick = onTimeDataClick
+            )
         }
     }
 }
@@ -359,22 +367,28 @@ fun SpotCanvas(
 
 @Composable
 fun TimeButton(
-    time: String = "9:00 - 18:00"
+    timeData: TimeData = TimeData(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
 ) {
+    val buttonColor by animateColorAsState(
+        if (timeData.isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
     Button(
-        onClick = { /*TODO*/ },
+        onClick = { onTimeDataClick(timeData) },
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier
             .padding(4.dp)
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = buttonColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         Text(
-            text = time,
+            text = timeData.toString(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
