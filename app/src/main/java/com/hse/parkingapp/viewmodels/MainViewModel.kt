@@ -142,7 +142,13 @@ class MainViewModel @Inject constructor(
         timesList.value = TimeDataState(
             currentTime = selectorState.value.selectedDay.date
         )
-        updateTime(timesList.value.timeDataList.first())
+        if (!timesList.value.timeDataList.isEmpty()) {
+            updateTime(timesList.value.timeDataList.first())
+        } else {
+            parking.value = parking.value.copy(
+                spots = listOf()
+            )
+        }
     }
 
     private fun changeCurrentScreen(newScreen: Screen) {
@@ -175,7 +181,29 @@ class MainViewModel @Inject constructor(
             selectedTime = time
         )
         timesList.value.onItemSelected(time)
-        // TODO: update parking spots according to selected time period
+
+        getSpotsList()
+    }
+
+    private fun getSpotsList() {
+        viewModelScope.launch {
+            val startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime)
+            val endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
+
+            val spots = parkingRepository.getFreeSpotsInInterval(
+                levelId = parkingManager.getLevelId() ?: "",
+                startTime = startTime,
+                endTime = endTime
+            ).body() ?: listOf()
+
+            parking.value = parking.value.copy(
+                spots = spots
+            )
+        }
+    }
+
+    private fun prepareTimeForServer(time: ZonedDateTime): String {
+        return "${time.toLocalDateTime().plusHours(parkingManager.getHoursDifference())}"
     }
 
     private fun updateSpot(spot: Spot) {
@@ -225,7 +253,7 @@ class MainViewModel @Inject constructor(
             val levels = parkingRepository.getBuildingLevels(
                 buildingId = parkingManager.getBuildingId() ?: ""
             ).body()
-            parkingManager.saveLevelId(levels?.first()?.id)
+            parkingManager.saveLevelId(levels?.get(1)?.id)
 
             inflateParking()
 
@@ -259,13 +287,8 @@ class MainViewModel @Inject constructor(
             levelId = parkingManager.getLevelId() ?: ""
         ).body()
 
-        val spots = parkingRepository.getLevelSpots(
-            levelId = level?.id ?: ""
-        ).body()
-
         parking.value = parking.value.copy(
-            level = level ?: Level(),
-            spots = spots ?: listOf()
+            level = level ?: Level()
         )
     }
 

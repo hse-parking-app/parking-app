@@ -6,6 +6,7 @@ import com.hse.parkingapp.model.Spot
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ParkingApi {
     @GET("building")
@@ -17,6 +18,10 @@ interface ParkingApi {
     @GET("parkingLevels/{levelId}")
     suspend fun getLevel(@Path("levelId") levelId: String): Response<Level>
 
-    @GET("parkingLevels/{levelId}/spots")
-    suspend fun getLevelSpots(@Path("levelId") levelId: String): Response<List<Spot>>
+    @GET("/parkingLevels/{levelId}/freeSpotsInInterval")
+    suspend fun getFreeSpotsInInterval(
+        @Path("levelId") levelId: String,
+        @Query("startTime") startTime: String,
+        @Query("endTime") endTime: String,
+    ): Response<List<Spot>>
 }

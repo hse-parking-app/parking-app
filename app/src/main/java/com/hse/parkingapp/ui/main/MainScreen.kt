@@ -291,15 +291,26 @@ fun TimesRow(
     timesList: List<TimeData> = listOf(),
     onTimeDataClick: (TimeData) -> Unit = {  }
 ) {
-    LazyRow(
-        state = listState,
-        contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
-    ) {
-        items(timesList) { time ->
-            TimeButton(
-                timeData = time,
-                onTimeDataClick = onTimeDataClick
-            )
+    if (timesList.isEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No available options to book for today.")
+        }
+    } else {
+        LazyRow(
+            state = listState,
+            contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
+        ) {
+            items(timesList) { time ->
+                TimeButton(
+                    timeData = time,
+                    onTimeDataClick = onTimeDataClick
+                )
+            }
         }
     }
 }

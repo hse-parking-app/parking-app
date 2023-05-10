@@ -29,9 +29,25 @@ class ParkingRepository(
         }
     }
 
-    suspend fun getLevelSpots(levelId: String): Response<List<Spot>> {
+    /**
+     * Retrieves the list of free spots within a specified time interval for a given level.
+     *
+     * @param levelId The ID of the level.
+     * @param startTime The start time of the interval in string format.
+     * @param endTime The end time of the interval in string format.
+     * @return A Response object containing the list of free spots.
+     */
+    suspend fun getFreeSpotsInInterval(
+        levelId: String,
+        startTime: String,
+        endTime: String
+    ): Response<List<Spot>> {
         return withContext(Dispatchers.IO) {
-            parkingApi.getLevelSpots(levelId)
+            parkingApi.getFreeSpotsInInterval(
+                levelId = levelId,
+                startTime = startTime,
+                endTime = endTime
+            )
         }
     }
 }
