@@ -11,6 +11,7 @@ import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.time.TimeData
 import com.hse.parkingapp.model.time.TimeDataState
 import com.hse.parkingapp.navigation.CurrentScreen
@@ -22,6 +23,8 @@ import com.hse.parkingapp.ui.main.SelectorState
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.AuthenticationEvent
 import com.hse.parkingapp.ui.signin.AuthenticationState
+import com.hse.parkingapp.utils.errors.CurrentError
+import com.hse.parkingapp.utils.errors.ErrorType
 import com.hse.parkingapp.utils.parking.ParkingManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -41,6 +44,8 @@ class MainViewModel @Inject constructor(
     // These channels are responsible for network error handling
     private val resultChannel = Channel<AuthResult<Unit>>()
     val authResults = resultChannel.receiveAsFlow()
+
+    val errors = MutableStateFlow(CurrentError())
 
     val currentScreen = MutableStateFlow(CurrentScreen())
 
@@ -169,10 +174,33 @@ class MainViewModel @Inject constructor(
                 updateSpot(selectorEvent.spot)
             }
             is SelectorEvent.SpotBooked -> {
-                // TODO: implement the logic in future
-                //  1) if user does not have a car:
-                //      -> show toast "You can't book a spot without car!"
+                bookSpot()
             }
+        }
+    }
+
+    private fun bookSpot() {
+        viewModelScope.launch {
+            employee.value = employee.value.copy(isLoading = true)
+
+            val reservationRequest = ReservationRequest(
+                carId = employee.value.cars.first().id,
+                parkingSpotId = selectorState.value.selectedSpot?.id ?: "",
+                startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime),
+                endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
+            )
+
+            val response = parkingRepository.createReservation(
+                reservationRequest = reservationRequest
+            )
+
+            if (!response.isSuccessful) {
+                errors.value = errors.value.copy(error = ErrorType.UnknownError)
+            }
+
+            updateTime(selectorState.value.selectedTime)
+
+            employee.value = employee.value.copy(isLoading = false)
         }
     }
 
@@ -207,6 +235,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun updateSpot(spot: Spot) {
+        if (employee.value.cars.isEmpty()) {
+            errors.value = errors.value.copy(error = ErrorType.NoCar)
+        }
+
         selectorState.value = selectorState.value.copy(
             selectedSpot = spot
         )

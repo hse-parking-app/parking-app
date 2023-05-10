@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
 import com.hse.parkingapp.model.Canvas
+import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
@@ -51,7 +52,8 @@ fun MainScreen(
     parking: Parking = Parking(),
     handleEvent: (event: SelectorEvent) -> Unit = {  },
     dayDataState: DayDataState = DayDataState(),
-    timeDataState: TimeDataState = TimeDataState()
+    timeDataState: TimeDataState = TimeDataState(),
+    employee: Employee = Employee()
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
@@ -80,14 +82,18 @@ fun MainScreen(
             }
         )
     }
-    BottomSheet(
-        bottomSheetState = bottomSheetState,
-        selectorState = selectorState,
-        onBookClick = {
-            scope.launch { bottomSheetState.hide() }
-            // TODO: perform booking operation with a server
-        }
-    )
+    if (employee.cars.isNotEmpty()) {
+        BottomSheet(
+            bottomSheetState = bottomSheetState,
+            selectorState = selectorState,
+            onBookClick = {
+            scope.launch {
+                handleEvent(SelectorEvent.SpotBooked)
+                bottomSheetState.hide()}
+            },
+            employee = employee
+        )
+    }
 }
 
 @Composable
@@ -98,7 +104,8 @@ fun BottomSheet(
         initialValue = ModalBottomSheetValue.Hidden
     ),
     selectorState: SelectorState = SelectorState(),
-    onBookClick: () -> Unit = {  }
+    onBookClick: () -> Unit = {  },
+    employee: Employee = Employee()
 ) {
     ModalBottomSheetLayout(
         modifier = modifier,
@@ -149,7 +156,6 @@ fun BottomSheet(
                         }
                     )
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
-                    // TODO: insert information about employee's car
                     BottomSheetFeature(
                         feature = R.string.car,
                         content = {
@@ -157,12 +163,12 @@ fun BottomSheet(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = "А001ВС 152",
+                                    text = employee.cars.first().registryNumber,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = "Toyota Camry",
+                                    text = employee.cars.first().model,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -178,11 +184,18 @@ fun BottomSheet(
                     shape = MaterialTheme.shapes.medium,
                     onClick = onBookClick
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.book),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    if (employee.isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.then(Modifier.size(32.dp))
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.book),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

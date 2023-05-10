@@ -17,6 +17,7 @@ import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.SignInScreen
 import com.hse.parkingapp.ui.splash.SplashScreen
 import com.hse.parkingapp.ui.buildings.BuildingsScreen
+import com.hse.parkingapp.utils.errors.ErrorType
 import com.hse.parkingapp.viewmodels.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
 
@@ -29,11 +30,12 @@ fun NavGraph(
 ) {
     val context = LocalContext.current
     val currentScreen = viewModel.currentScreen.collectAsState().value.screen
+    val errors = viewModel.errors.collectAsState().value.error
 
     // Block of code which is responsible for
     // navigation between screens and
     // making toast messages
-    LaunchedEffect(viewModel, context, currentScreen) {
+    LaunchedEffect(viewModel, context, currentScreen, errors) {
         when(currentScreen) {
             is Screen.SplashScreen -> navigateTo(Screen.SplashScreen, navController)
             is Screen.BuildingsScreen -> navigateTo(Screen.BuildingsScreen, navController)
@@ -50,6 +52,12 @@ fun NavGraph(
                 }
                 else -> {  }
             }
+        }
+
+        when(errors) {
+            is ErrorType.NoCar -> { showErrorToast(context, "You don't have a car!") }
+            is ErrorType.UnknownError -> { showErrorToast(context, "Unknown error") }
+            is ErrorType.NoError -> {  }
         }
     }
 
@@ -79,7 +87,8 @@ fun NavGraph(
                 handleEvent = viewModel::handleSelectorEvent,
                 parking = viewModel.parking.collectAsState().value,
                 dayDataState = viewModel.daysList.collectAsState().value,
-                timeDataState = viewModel.timesList.collectAsState().value
+                timeDataState = viewModel.timesList.collectAsState().value,
+                employee = viewModel.employee.collectAsState().value
             )
         }
     }

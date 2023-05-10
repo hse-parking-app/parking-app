@@ -4,6 +4,8 @@ import com.hse.parkingapp.data.network.ParkingApi
 import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Level
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.reservation.ReservationRequest
+import com.hse.parkingapp.model.reservation.ReservationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
@@ -47,6 +49,21 @@ class ParkingRepository(
                 levelId = levelId,
                 startTime = startTime,
                 endTime = endTime
+            )
+        }
+    }
+
+    /**
+     * Creates a reservation using the specified reservation request.
+     * @param reservationRequest The reservation request containing the necessary information for the reservation.
+     * @return A Response object containing the result of the reservation.
+     */
+    suspend fun createReservation(
+        reservationRequest: ReservationRequest
+    ): Response<ReservationResult> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.createReservation(
+                reservationRequest = reservationRequest
             )
         }
     }

@@ -1,7 +1,5 @@
 package com.hse.parkingapp.model.reservation
 
-import kotlinx.serialization.Serializable
-
 /**
  * Represents the result of a reservation.
  *
@@ -12,7 +10,6 @@ import kotlinx.serialization.Serializable
  * @property startTime The start time of the reservation in string format. Default value is an empty string.
  * @property endTime The end time of the reservation in string format. Default value is an empty string.
  */
-@Serializable
 data class ReservationResult(
     val id: String = "",
     val carId: String = "",
