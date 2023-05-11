@@ -59,7 +59,7 @@ fun Header(
 ) {
     Text(
         modifier = modifier.padding(top = 16.dp, bottom = 8.dp),
-        text = "Выберите парковку",
+        text = stringResource(id = R.string.choose_building),
         style = MaterialTheme.typography.headlineMedium,
         color = MaterialTheme.colorScheme.onBackground
     )

@@ -67,4 +67,48 @@ class ParkingRepository(
             )
         }
     }
+
+    /**
+     * Retrieves employee's reservation by making a suspend network call.
+     * @return A response containing the reservation result.
+     */
+    suspend fun getReservation(): Response<List<ReservationResult>> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.getReservation()
+        }
+    }
+
+    /**
+     * Retrieves information for about parking spot by its ID.
+     *
+     * @param spotId The ID of the parking spot.
+     * @return A response containing the spot information.
+     */
+    suspend fun getSpotInformation(spotId: String): Response<Spot> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.getSpotInformation(spotId)
+        }
+    }
+
+    /**
+     * Deletes a reservation by its ID.
+     * @param reservationId The ID of the reservation to delete.
+     * @return A response indicating the success or failure of the deletion.
+     */
+    suspend fun deleteReservation(reservationId: String): Response<Unit> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.deleteReservation(reservationId)
+        }
+    }
+
+    /**
+     * Retrieves all spots on a level by the level ID.
+     * @param levelId The ID of the level.
+     * @return A response containing a list of spots on the level.
+     */
+    suspend fun getAllSpotsOnLevel(levelId: String): Response<List<Spot>> {
+        return withContext(Dispatchers.IO) {
+            parkingApi.getAllSpotsOnLevel(levelId)
+        }
+    }
 }

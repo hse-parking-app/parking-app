@@ -32,6 +32,7 @@ import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.reservation.Reservation
 import com.hse.parkingapp.model.time.TimeData
 import com.hse.parkingapp.model.time.TimeDataState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
@@ -53,24 +54,34 @@ fun MainScreen(
     handleEvent: (event: SelectorEvent) -> Unit = {  },
     dayDataState: DayDataState = DayDataState(),
     timeDataState: TimeDataState = TimeDataState(),
-    employee: Employee = Employee()
+    employee: Employee = Employee(),
+    reservation: Reservation = Reservation()
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     )
     val scope = rememberCoroutineScope()
 
-    Column(modifier = modifier) {
-        DateChooser(
-            dayDataState = dayDataState,
-            onDayDataClick = { day ->
-                handleEvent(SelectorEvent.DayChanged(day))
-            },
-            timeDataState = timeDataState,
-            onTimeDataClick = { time ->
-                handleEvent(SelectorEvent.TimeChanged(time))
-            }
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        if (employee.reservation == null) {
+            DateChooser(
+                modifier = Modifier,
+                dayDataState = dayDataState,
+                onDayDataClick = { day ->
+                    handleEvent(SelectorEvent.DayChanged(day))
+                },
+                timeDataState = timeDataState,
+                onTimeDataClick = { time ->
+                    handleEvent(SelectorEvent.TimeChanged(time))
+                }
+            )
+        } else {
+            ReservationInfo(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                reservation = reservation,
+                onCancelClick = { handleEvent(SelectorEvent.CancelReservation) }
+            )
+        }
         SpotCanvas(
             canvas = parking.level.canvas,
             spots = parking.spots,
@@ -79,7 +90,9 @@ fun MainScreen(
                 if (spot.isFree) {
                     scope.launch { bottomSheetState.show() }
                 }
-            }
+            },
+            employee = employee,
+            reservation = reservation
         )
     }
     if (employee.cars.isNotEmpty()) {
@@ -143,7 +156,7 @@ fun BottomSheet(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = selectorState.selectedTime.getPeriod(),
+                                    text = selectorState.selectedTime.getHoursPeriod(),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
@@ -332,7 +345,9 @@ fun TimesRow(
 fun SpotCanvas(
     canvas: Canvas = Canvas(0, 0),
     spots: List<Spot> = emptyList(),
-    onSpotClick: (spot: Spot) -> Unit = {  }
+    onSpotClick: (spot: Spot) -> Unit = {  },
+    employee: Employee = Employee(),
+    reservation: Reservation = Reservation()
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -382,6 +397,7 @@ fun SpotCanvas(
                     parkingNumber = spot.parkingNumber,
                     isAvailable = spot.isAvailable,
                     isFree = spot.isFree,
+                    isReserved = employee.reservation != null && spot.id == reservation.spot.id,
                     onClick = { if (spot.isFree && spot.isAvailable) onSpotClick(spot) }
                 )
             }
@@ -429,6 +445,7 @@ fun SpotButton(
     isAvailable: Boolean = true,
     isFree: Boolean = false,
     onClick: () -> Unit = {  },
+    isReserved: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -457,11 +474,18 @@ fun SpotButton(
         }
     }
 
+    val spotColor = if (isFree && isAvailable) {
+        MaterialTheme.colorScheme.tertiary
+    } else if (isReserved) {
+      MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.tertiaryContainer
+    }
+
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFree && isAvailable) MaterialTheme.colorScheme.tertiary
-                else MaterialTheme.colorScheme.tertiaryContainer,
+            containerColor = spotColor,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         modifier = Modifier
@@ -515,6 +539,89 @@ fun DayButton(
             text = "${dayData.day}",
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+/**
+ * Composable function for displaying reservation information.
+ * @param modifier The modifier for configuring the appearance and behavior of the composable. Default value is Modifier.
+ */
+@Composable
+fun ReservationInfo(
+    modifier: Modifier = Modifier,
+    reservation: Reservation = Reservation(),
+    onCancelClick: () -> Unit = {  }
+) {
+    Card(
+        modifier = modifier
+            .padding(horizontal = 20.dp, vertical = 30.dp)
+            .zIndex(1f)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 16.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(id = R.string.has_reservation),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Row(
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = reservation.time.getHoursPeriod(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = reservation.time.getDayInfo(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.surfaceTint
+                    )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp),
+                        text = reservation.spot.parkingNumber
+                    )
+                }
+            }
+            Button(
+                onClick = onCancelClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.cancel_reservation),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
     }
 }
 

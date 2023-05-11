@@ -11,6 +11,7 @@ import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.reservation.Reservation
 import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.time.TimeData
 import com.hse.parkingapp.model.time.TimeDataState
@@ -50,6 +51,7 @@ class MainViewModel @Inject constructor(
     val currentScreen = MutableStateFlow(CurrentScreen())
 
     val employee = MutableStateFlow(Employee())
+    val reservation = MutableStateFlow(Reservation())
     val parking = MutableStateFlow(Parking())
     val daysList = MutableStateFlow(DayDataState())
     val timesList = MutableStateFlow(TimeDataState())
@@ -104,7 +106,7 @@ class MainViewModel @Inject constructor(
             )
 
             if (result::class == AuthResult.Authorized::class) {
-                updateEmployee(result.employee)
+                updateEmployeeAndReservation(result.employee)
                 inflateBuildings()
 
                 changeCurrentScreen(newScreen = Screen.BuildingsScreen)
@@ -118,7 +120,7 @@ class MainViewModel @Inject constructor(
     private fun authenticate() {
         viewModelScope.launch {
             val result = authRepository.authenticate()
-            updateEmployee(result.employee)
+            updateEmployeeAndReservation(result.employee)
 
             if (result::class == AuthResult.Authorized::class) {
                 inflateBuildings()
@@ -139,8 +141,6 @@ class MainViewModel @Inject constructor(
             currentTime = authRepository.getCurrentTime() ?: ZonedDateTime.now()
         )
         updateDay(daysList.value.dayDataList.first())
-
-        inflateTimesRow()
     }
 
     private fun inflateTimesRow() {
@@ -149,11 +149,8 @@ class MainViewModel @Inject constructor(
         )
         if (!timesList.value.timeDataList.isEmpty()) {
             updateTime(timesList.value.timeDataList.first())
-        } else {
-            parking.value = parking.value.copy(
-                spots = listOf()
-            )
         }
+        getSpotsList()
     }
 
     private fun changeCurrentScreen(newScreen: Screen) {
@@ -175,6 +172,21 @@ class MainViewModel @Inject constructor(
             }
             is SelectorEvent.SpotBooked -> {
                 bookSpot()
+            }
+            is SelectorEvent.CancelReservation -> {
+                cancelReservation()
+            }
+        }
+    }
+
+    private fun cancelReservation() {
+        viewModelScope.launch {
+            val response = parkingRepository.deleteReservation(
+                reservationId = employee.value.reservation?.id ?: ""
+            )
+
+            if (response.isSuccessful) {
+                authenticate()
             }
         }
     }
@@ -201,6 +213,8 @@ class MainViewModel @Inject constructor(
             updateTime(selectorState.value.selectedTime)
 
             employee.value = employee.value.copy(isLoading = false)
+
+            authenticate()
         }
     }
 
@@ -209,20 +223,29 @@ class MainViewModel @Inject constructor(
             selectedTime = time
         )
         timesList.value.onItemSelected(time)
-
         getSpotsList()
     }
 
     private fun getSpotsList() {
         viewModelScope.launch {
-            val startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime)
-            val endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
+            val spots = if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
+                val rawSpots = parkingRepository.getAllSpotsOnLevel(
+                    levelId = parkingManager.getLevelId() ?: ""
+                ).body()
 
-            val spots = parkingRepository.getFreeSpotsInInterval(
-                levelId = parkingManager.getLevelId() ?: "",
-                startTime = startTime,
-                endTime = endTime
-            ).body() ?: listOf()
+                rawSpots?.map{ it.copy(isFree = false) } ?: listOf()
+            } else {
+                val startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime)
+                val endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
+
+                val rawSpots = parkingRepository.getFreeSpotsInInterval(
+                    levelId = parkingManager.getLevelId() ?: "",
+                    startTime = startTime,
+                    endTime = endTime
+                ).body() ?: listOf()
+
+                rawSpots
+            }
 
             parking.value = parking.value.copy(
                 spots = spots
@@ -253,7 +276,7 @@ class MainViewModel @Inject constructor(
         inflateTimesRow()
     }
 
-    private fun updateEmployee(newEmployee: Employee?) {
+    private suspend fun updateEmployeeAndReservation(newEmployee: Employee?) {
         employee.value = employee.value.copy(
             id = newEmployee?.id ?: "",
             name = newEmployee?.name ?: "Egor",
@@ -261,6 +284,25 @@ class MainViewModel @Inject constructor(
             cars = newEmployee?.cars ?: mutableListOf(),
             reservation = newEmployee?.reservation
         )
+
+        if (employee.value.reservation != null) {
+            val reservedSpot = parkingRepository.getSpotInformation(
+                spotId = employee.value.reservation?.parkingSpotId ?: ""
+            ).body()
+            val reservationResult = parkingRepository.getReservation().body()?.first()
+
+            reservation.value = reservation.value.copy(
+                spot = reservedSpot ?: Spot(),
+                time = TimeData(
+                    startTime = ZonedDateTime
+                        .parse("${reservationResult?.startTime}Z")
+                        .minusHours(parkingManager.getHoursDifference()),
+                    endTime = ZonedDateTime
+                        .parse("${reservationResult?.endTime}Z")
+                        .minusHours(parkingManager.getHoursDifference())
+                )
+            )
+        }
     }
 
     fun handleBuildingsEvent(buildingsEvent: BuildingsEvent) {

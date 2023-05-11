@@ -4,7 +4,7 @@ import com.auth0.android.jwt.JWT
 import com.hse.parkingapp.data.network.AuthApi
 import com.hse.parkingapp.model.Car
 import com.hse.parkingapp.model.Employee
-import com.hse.parkingapp.model.Reservation
+import com.hse.parkingapp.model.reservation.ReservationResult
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.utils.parking.ParkingManager
@@ -132,7 +132,7 @@ class AuthRepository(
         }
     }
 
-    private suspend fun getEmployeeReservation(): Reservation? {
+    private suspend fun getEmployeeReservation(): ReservationResult? {
         val response = authApi.getEmployeeReservation()
 
         return if (response.isSuccessful) {

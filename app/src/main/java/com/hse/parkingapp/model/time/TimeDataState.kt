@@ -2,6 +2,7 @@ package com.hse.parkingapp.model.time
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
 /**
@@ -21,44 +22,46 @@ class TimeDataState(
      * @param currentTime The current time.
      */
     init {
-        var id = 0
-        var tempTime = currentTime
+        if (!(currentTime.dayOfWeek == DayOfWeek.SATURDAY || currentTime.dayOfWeek == DayOfWeek.SUNDAY)) {
+            var id = 0
+            var tempTime = currentTime
 
-        // Adjust the tempTime to the nearest hour boundary
-        tempTime = if (tempTime.hour < 10) {
-            tempTime.withHour(10)
-        } else if (tempTime.hour in 10..18) {
-            tempTime.plusHours(1)
-        } else {
-            tempTime
-        }
-        tempTime = tempTime.withMinute(0).withSecond(0).withNano(0)
+            // Adjust the tempTime to the nearest hour boundary
+            tempTime = if (tempTime.hour < 10) {
+                tempTime.withHour(10)
+            } else if (tempTime.hour in 10..18) {
+                tempTime.plusHours(1)
+            } else {
+                tempTime
+            }
+            tempTime = tempTime.withMinute(0).withSecond(0).withNano(0)
 
-        // Generate time data for each hour starting from tempTime
-        while (tempTime.hour < 19) {
-            // Add selected time data for the current hour
-            timeDataList.add(
-                TimeData(
-                    id = id++,
-                    startTime = tempTime,
-                    endTime = tempTime.plusHours(1),
-                    isSelected = true
-                )
-            )
-
-            tempTime = tempTime.plusHours(1)
-
-            // Add unselected time data for the remaining hours in the day
+            // Generate time data for each hour starting from tempTime
             while (tempTime.hour < 19) {
+                // Add selected time data for the current hour
                 timeDataList.add(
                     TimeData(
                         id = id++,
                         startTime = tempTime,
                         endTime = tempTime.plusHours(1),
-                        isSelected = false
+                        isSelected = true
                     )
                 )
+
                 tempTime = tempTime.plusHours(1)
+
+                // Add unselected time data for the remaining hours in the day
+                while (tempTime.hour < 19) {
+                    timeDataList.add(
+                        TimeData(
+                            id = id++,
+                            startTime = tempTime,
+                            endTime = tempTime.plusHours(1),
+                            isSelected = false
+                        )
+                    )
+                    tempTime = tempTime.plusHours(1)
+                }
             }
         }
     }

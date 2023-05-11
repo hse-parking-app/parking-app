@@ -9,4 +9,5 @@ sealed class SelectorEvent {
     class TimeChanged(val time: TimeData): SelectorEvent()
     class SpotChanged(val spot: Spot): SelectorEvent()
     object SpotBooked: SelectorEvent()
+    object CancelReservation: SelectorEvent()
 }

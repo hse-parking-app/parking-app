@@ -9,6 +9,7 @@ import com.hse.parkingapp.data.repository.AuthRepository
 import com.hse.parkingapp.data.repository.ParkingRepository
 import com.hse.parkingapp.utils.auth.AuthAuthenticator
 import com.hse.parkingapp.utils.auth.AuthInterceptor
+import com.hse.parkingapp.utils.auth.NetworkConstants
 import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
 import dagger.Module
@@ -24,8 +25,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    private const val baseUrl = "http://91.185.85.37:8080/"
 
     @Provides
     @Singleton
@@ -70,7 +69,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofitBuilder(): Retrofit.Builder = Retrofit.Builder()
-        .baseUrl(baseUrl)
+        .baseUrl(NetworkConstants.BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
 
     @Provides

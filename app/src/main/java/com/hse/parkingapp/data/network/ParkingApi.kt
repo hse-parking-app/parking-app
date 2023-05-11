@@ -7,6 +7,7 @@ import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.reservation.ReservationResult
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -33,4 +34,20 @@ interface ParkingApi {
     suspend fun createReservation(
         @Body reservationRequest: ReservationRequest
     ): Response<ReservationResult>
+
+    @GET("reservations/employee")
+    suspend fun getReservation(): Response<List<ReservationResult>>
+
+    @GET("parkingSpots/{spotId}")
+    suspend fun getSpotInformation(@Path("spotId") spotId: String): Response<Spot>
+
+    @DELETE("reservations/{reservationId}/employee")
+    suspend fun deleteReservation(
+        @Path("reservationId") reservationId: String
+    ): Response<Unit>
+
+    @GET("parkingLevels/{levelId}/spots")
+    suspend fun getAllSpotsOnLevel(
+        @Path("levelId") levelId: String
+    ): Response<List<Spot>>
 }

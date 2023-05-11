@@ -48,7 +48,7 @@ class AuthAuthenticator @Inject constructor(
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://91.185.85.37:8080/")
+            .baseUrl(NetworkConstants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()

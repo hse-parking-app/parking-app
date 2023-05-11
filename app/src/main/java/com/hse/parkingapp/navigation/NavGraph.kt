@@ -88,7 +88,8 @@ fun NavGraph(
                 parking = viewModel.parking.collectAsState().value,
                 dayDataState = viewModel.daysList.collectAsState().value,
                 timeDataState = viewModel.timesList.collectAsState().value,
-                employee = viewModel.employee.collectAsState().value
+                employee = viewModel.employee.collectAsState().value,
+                reservation = viewModel.reservation.collectAsState().value
             )
         }
     }

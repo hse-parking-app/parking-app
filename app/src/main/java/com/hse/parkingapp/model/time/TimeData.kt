@@ -1,6 +1,8 @@
 package com.hse.parkingapp.model.time
 
 import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.util.Locale
 
 /**
  * Represents time data with an ID, start time, end time, and selection status.
@@ -35,7 +37,39 @@ data class TimeData(
      *
      * @return The period string.
      */
-    fun getPeriod(): String {
+    fun getHoursPeriod(): String {
         return "с ${startTime.hour}:00 до ${endTime.hour}:00"
     }
+
+    /**
+     * Returns a string representing the day information.
+     * @return The day information string in the format "$dayOfWeek, $day $month".
+     */
+    fun getDayInfo(): String {
+        return "$dayOfWeek, $day $month"
+    }
+
+    /**
+     * Represents the day of the month.
+     * @property day The day of the month.
+     */
+    private val day: Int = startTime.dayOfMonth
+
+    /**
+     * Represents the month name.
+     * @property month The month name.
+     */
+    private val month: String = startTime.month.getDisplayName(
+        TextStyle.FULL_STANDALONE,
+        Locale.getDefault()
+    )
+
+    /**
+     * Represents the day of the week name.
+     * @property dayOfWeek The day of the week name.
+     */
+    private val dayOfWeek: String = startTime.dayOfWeek.getDisplayName(
+        TextStyle.FULL_STANDALONE,
+        Locale.getDefault()
+    )
 }
