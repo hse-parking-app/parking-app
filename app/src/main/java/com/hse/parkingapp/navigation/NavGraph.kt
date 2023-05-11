@@ -89,7 +89,8 @@ fun NavGraph(
                 dayDataState = viewModel.daysList.collectAsState().value,
                 timeDataState = viewModel.timesList.collectAsState().value,
                 employee = viewModel.employee.collectAsState().value,
-                reservation = viewModel.reservation.collectAsState().value
+                reservation = viewModel.reservation.collectAsState().value,
+                levelDataState = viewModel.levelsList.collectAsState().value
             )
         }
     }

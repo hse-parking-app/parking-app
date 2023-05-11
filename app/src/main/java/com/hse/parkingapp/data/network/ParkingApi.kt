@@ -1,7 +1,7 @@
 package com.hse.parkingapp.data.network
 
 import com.hse.parkingapp.model.Building
-import com.hse.parkingapp.model.Level
+import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.reservation.ReservationResult

@@ -9,14 +9,17 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -32,6 +35,8 @@ import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.level.LevelData
+import com.hse.parkingapp.model.level.LevelDataState
 import com.hse.parkingapp.model.reservation.Reservation
 import com.hse.parkingapp.model.time.TimeData
 import com.hse.parkingapp.model.time.TimeDataState
@@ -54,6 +59,7 @@ fun MainScreen(
     handleEvent: (event: SelectorEvent) -> Unit = {  },
     dayDataState: DayDataState = DayDataState(),
     timeDataState: TimeDataState = TimeDataState(),
+    levelDataState: LevelDataState = LevelDataState(),
     employee: Employee = Employee(),
     reservation: Reservation = Reservation()
 ) {
@@ -73,6 +79,13 @@ fun MainScreen(
                 timeDataState = timeDataState,
                 onTimeDataClick = { time ->
                     handleEvent(SelectorEvent.TimeChanged(time))
+                }
+            )
+            LevelPicker(
+                modifier = Modifier.align(Alignment.CenterStart),
+                levelsList = levelDataState.levelDataList,
+                onLevelClick = { level ->
+                    handleEvent(SelectorEvent.LevelChanged(level))
                 }
             )
         } else {
@@ -449,38 +462,31 @@ fun SpotButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    var isReleased by remember { mutableStateOf(false) }  // ???
+    var isReleased by remember { mutableStateOf(false) }
     val sizeScale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
-    val offsetXAnimated by animateIntAsState(
-        targetValue = if (isReleased && !isAvailable && !isFree) offsetX + 10 else offsetX,
-        animationSpec = spring(
-            dampingRatio = 0.3f,
-            stiffness = 5000f
-        )
-    )
     val coroutineScope = rememberCoroutineScope()
 
-    // It's a trash code, but it works fine! (for this moment)
-    // I'm working on it!
     if (isPressed) {
         DisposableEffect(Unit) {
             onDispose {
                 coroutineScope.launch {
-                    isReleased = !isReleased // true
+                    isReleased = !isReleased
                     delay(50)
-                    isReleased = !isReleased // false
+                    isReleased = !isReleased
                 }
             }
         }
     }
 
-    val spotColor = if (isFree && isAvailable) {
-        MaterialTheme.colorScheme.tertiary
-    } else if (isReserved) {
-      MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.tertiaryContainer
-    }
+    val spotColor by animateColorAsState(
+        if (isFree && isAvailable) {
+            MaterialTheme.colorScheme.tertiary
+        } else if (isReserved) {
+          MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer
+        }
+    )
 
     Button(
         onClick = onClick,
@@ -490,7 +496,7 @@ fun SpotButton(
         ),
         modifier = Modifier
             .size(width = width.dp, height = height.dp)
-            .offset(x = offsetXAnimated.dp, y = offsetY.dp)
+            .offset(x = offsetX.dp, y = offsetY.dp)
             .graphicsLayer(
                 scaleX = sizeScale,
                 scaleY = sizeScale
@@ -622,6 +628,70 @@ fun ReservationInfo(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LevelPicker(
+    modifier: Modifier = Modifier,
+    levelsList: List<LevelData> = listOf(),
+    onLevelClick: (LevelData) -> Unit = {  }
+) {
+    Card(
+        modifier = modifier
+            .alpha(0.7f)
+            .padding(12.dp)
+            .zIndex(1f),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        LazyColumn {
+            items(levelsList) { level ->
+                LevelButton(
+                    level = level,
+                    onLevelClick = onLevelClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LevelButton(
+    modifier: Modifier = Modifier,
+    level: LevelData = LevelData(),
+    onLevelClick: (LevelData) -> Unit = {  },
+) {
+    val levelColor by animateColorAsState(
+        if (level.isSelected) {
+            MaterialTheme.colorScheme.onTertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer
+        }
+    )
+
+    val levelNumberColor by animateColorAsState(
+        if (level.isSelected) {
+            MaterialTheme.colorScheme.surfaceTint
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+    )
+
+    Button(
+        modifier = modifier.size(40.dp),
+        onClick = { onLevelClick(level) },
+        shape = RoundedCornerShape(0),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = levelColor,
+            contentColor = levelNumberColor
+        ),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Text(
+            text = level.level.levelNumber
+        )
     }
 }
 
