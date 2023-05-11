@@ -11,4 +11,7 @@
     <string name="car">Автомобиль</string>
     <string name="book">Забронировать</string>
     <string name="continue_">Продолжить</string>
+    <string name="has_reservation">У вас забронировано место</string>
+    <string name="choose_building">Выберите парковку</string>
+    <string name="cancel_reservation">Отменить бронь</string>
 </resources>

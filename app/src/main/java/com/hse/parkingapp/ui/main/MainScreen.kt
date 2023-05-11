@@ -9,14 +9,17 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -27,10 +30,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
 import com.hse.parkingapp.model.Canvas
+import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.level.LevelData
+import com.hse.parkingapp.model.level.LevelDataState
+import com.hse.parkingapp.model.reservation.Reservation
+import com.hse.parkingapp.model.time.TimeData
+import com.hse.parkingapp.model.time.TimeDataState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetLayout
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetValue
@@ -48,20 +57,44 @@ fun MainScreen(
     selectorState: SelectorState = SelectorState(),
     parking: Parking = Parking(),
     handleEvent: (event: SelectorEvent) -> Unit = {  },
-    dayDataState: DayDataState = DayDataState()
+    dayDataState: DayDataState = DayDataState(),
+    timeDataState: TimeDataState = TimeDataState(),
+    levelDataState: LevelDataState = LevelDataState(),
+    employee: Employee = Employee(),
+    reservation: Reservation = Reservation()
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     )
     val scope = rememberCoroutineScope()
 
-    Column(modifier = modifier) {
-        DateChooser(
-            dayDataState = dayDataState,
-            onDayDataClick = { day ->
-                handleEvent(SelectorEvent.DayChanged(day))
-            }
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        if (employee.reservation == null) {
+            DateChooser(
+                modifier = Modifier,
+                dayDataState = dayDataState,
+                onDayDataClick = { day ->
+                    handleEvent(SelectorEvent.DayChanged(day))
+                },
+                timeDataState = timeDataState,
+                onTimeDataClick = { time ->
+                    handleEvent(SelectorEvent.TimeChanged(time))
+                }
+            )
+            LevelPicker(
+                modifier = Modifier.align(Alignment.CenterStart),
+                levelsList = levelDataState.levelDataList,
+                onLevelClick = { level ->
+                    handleEvent(SelectorEvent.LevelChanged(level))
+                }
+            )
+        } else {
+            ReservationInfo(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                reservation = reservation,
+                onCancelClick = { handleEvent(SelectorEvent.CancelReservation) }
+            )
+        }
         SpotCanvas(
             canvas = parking.level.canvas,
             spots = parking.spots,
@@ -70,18 +103,23 @@ fun MainScreen(
                 if (spot.isFree) {
                     scope.launch { bottomSheetState.show() }
                 }
-            }
+            },
+            employee = employee,
+            reservation = reservation
         )
     }
-    BottomSheet(
-        bottomSheetState = bottomSheetState,
-        parkingNumber = selectorState.selectedSpot?.parkingNumber,
-        parkingDay = selectorState.selectedDay.toString(),
-        onBookClick = {
-            scope.launch { bottomSheetState.hide() }
-            // TODO: perform booking operation with a server
-        }
-    )
+    if (employee.cars.isNotEmpty()) {
+        BottomSheet(
+            bottomSheetState = bottomSheetState,
+            selectorState = selectorState,
+            onBookClick = {
+            scope.launch {
+                handleEvent(SelectorEvent.SpotBooked)
+                bottomSheetState.hide()}
+            },
+            employee = employee
+        )
+    }
 }
 
 @Composable
@@ -91,9 +129,9 @@ fun BottomSheet(
     bottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     ),
-    parkingNumber: String? = "",
-    parkingDay: String? = "",
-    onBookClick: () -> Unit = {  }
+    selectorState: SelectorState = SelectorState(),
+    onBookClick: () -> Unit = {  },
+    employee: Employee = Employee()
 ) {
     ModalBottomSheetLayout(
         modifier = modifier,
@@ -117,13 +155,12 @@ fun BottomSheet(
                         feature = R.string.place,
                         content = {
                             Text(
-                                text = parkingNumber ?: "",
+                                text = selectorState.selectedSpot?.parkingNumber ?: "",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     )
-                    // TODO: make a color for divider in a palette
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
                     BottomSheetFeature(
                         feature = R.string.time_and_date,
@@ -132,13 +169,12 @@ fun BottomSheet(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    // TODO: change sample data here
-                                    text = "с 10:00 до 19:00",
+                                    text = selectorState.selectedTime.getHoursPeriod(),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = parkingDay ?: "",
+                                    text = selectorState.selectedDay.toString(),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -153,12 +189,12 @@ fun BottomSheet(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = "А001ВС 152",
+                                    text = employee.cars.first().registryNumber,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = "Toyota Camry",
+                                    text = employee.cars.first().model,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -174,11 +210,18 @@ fun BottomSheet(
                     shape = MaterialTheme.shapes.medium,
                     onClick = onBookClick
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.book),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    if (employee.isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.then(Modifier.size(32.dp))
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.book),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }
@@ -210,7 +253,9 @@ fun BottomSheetFeature(
 fun DateChooser(
     modifier: Modifier = Modifier,
     dayDataState: DayDataState = DayDataState(),
-    onDayDataClick: (day: DayData) -> Unit = {  }
+    onDayDataClick: (day: DayData) -> Unit = {  },
+    timeDataState: TimeDataState = TimeDataState(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
 ) {
     val listState = rememberLazyListState()
     val monthName by remember {
@@ -237,7 +282,10 @@ fun DateChooser(
                 daysList = dayDataState.dayDataList.toList(),
                 onDayDataClick = { onDayDataClick(it) }
             )
-            TimesRow()
+            TimesRow(
+                timesList = timeDataState.timeDataList.toList(),
+                onTimeDataClick = { onTimeDataClick(it) }
+            )
         }
     }
 }
@@ -267,9 +315,9 @@ fun DaysRow(
         state = listState,
         contentPadding = PaddingValues(start = 16.dp)
     ) {
-        items(daysList) { item ->
+        items(daysList) { day ->
             DayButton(
-                dayData = item,
+                dayData = day,
                 onDayDataClick = { dayData -> onDayDataClick(dayData) }
             )
         }
@@ -277,21 +325,31 @@ fun DaysRow(
 }
 
 @Composable
-fun TimesRow() {
-    val listState = rememberLazyListState()
-
-    LazyRow(
-        state = listState,
-        contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
-    ) {
-        item {
-            TimeButton(time = "9:00 - 18:00")
+fun TimesRow(
+    listState: LazyListState = rememberLazyListState(),
+    timesList: List<TimeData> = listOf(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
+) {
+    if (timesList.isEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No available options to book for today.")
         }
-        item {
-            TimeButton(time = "10:00 - 19:00")
-        }
-        item {
-            TimeButton(time = "11:00 - 20:00")
+    } else {
+        LazyRow(
+            state = listState,
+            contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
+        ) {
+            items(timesList) { time ->
+                TimeButton(
+                    timeData = time,
+                    onTimeDataClick = onTimeDataClick
+                )
+            }
         }
     }
 }
@@ -300,7 +358,9 @@ fun TimesRow() {
 fun SpotCanvas(
     canvas: Canvas = Canvas(0, 0),
     spots: List<Spot> = emptyList(),
-    onSpotClick: (spot: Spot) -> Unit = {  }
+    onSpotClick: (spot: Spot) -> Unit = {  },
+    employee: Employee = Employee(),
+    reservation: Reservation = Reservation()
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -350,6 +410,7 @@ fun SpotCanvas(
                     parkingNumber = spot.parkingNumber,
                     isAvailable = spot.isAvailable,
                     isFree = spot.isFree,
+                    isReserved = employee.reservation != null && spot.id == reservation.spot.id,
                     onClick = { if (spot.isFree && spot.isAvailable) onSpotClick(spot) }
                 )
             }
@@ -359,22 +420,28 @@ fun SpotCanvas(
 
 @Composable
 fun TimeButton(
-    time: String = "9:00 - 18:00"
+    timeData: TimeData = TimeData(),
+    onTimeDataClick: (TimeData) -> Unit = {  }
 ) {
+    val buttonColor by animateColorAsState(
+        if (timeData.isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
     Button(
-        onClick = { /*TODO*/ },
+        onClick = { onTimeDataClick(timeData) },
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier
             .padding(4.dp)
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = buttonColor,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         Text(
-            text = time,
+            text = timeData.toString(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -391,44 +458,45 @@ fun SpotButton(
     isAvailable: Boolean = true,
     isFree: Boolean = false,
     onClick: () -> Unit = {  },
+    isReserved: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    var isReleased by remember { mutableStateOf(false) }  // ???
+    var isReleased by remember { mutableStateOf(false) }
     val sizeScale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
-    val offsetXAnimated by animateIntAsState(
-        targetValue = if (isReleased && !isAvailable && !isFree) offsetX + 10 else offsetX,
-        animationSpec = spring(
-            dampingRatio = 0.3f,
-            stiffness = 5000f
-        )
-    )
     val coroutineScope = rememberCoroutineScope()
 
-    // It's a trash code, but it works fine! (for this moment)
-    // I'm working on it!
     if (isPressed) {
         DisposableEffect(Unit) {
             onDispose {
                 coroutineScope.launch {
-                    isReleased = !isReleased // true
+                    isReleased = !isReleased
                     delay(50)
-                    isReleased = !isReleased // false
+                    isReleased = !isReleased
                 }
             }
         }
     }
 
+    val spotColor by animateColorAsState(
+        if (isFree && isAvailable) {
+            MaterialTheme.colorScheme.tertiary
+        } else if (isReserved) {
+          MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer
+        }
+    )
+
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFree && isAvailable) MaterialTheme.colorScheme.tertiary
-                else MaterialTheme.colorScheme.tertiaryContainer,
+            containerColor = spotColor,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         modifier = Modifier
             .size(width = width.dp, height = height.dp)
-            .offset(x = offsetXAnimated.dp, y = offsetY.dp)
+            .offset(x = offsetX.dp, y = offsetY.dp)
             .graphicsLayer(
                 scaleX = sizeScale,
                 scaleY = sizeScale
@@ -476,6 +544,153 @@ fun DayButton(
         Text(
             text = "${dayData.day}",
             style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+/**
+ * Composable function for displaying reservation information.
+ * @param modifier The modifier for configuring the appearance and behavior of the composable. Default value is Modifier.
+ */
+@Composable
+fun ReservationInfo(
+    modifier: Modifier = Modifier,
+    reservation: Reservation = Reservation(),
+    onCancelClick: () -> Unit = {  }
+) {
+    Card(
+        modifier = modifier
+            .padding(horizontal = 20.dp, vertical = 30.dp)
+            .zIndex(1f)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 16.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(id = R.string.has_reservation),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Row(
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = reservation.time.getHoursPeriod(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = reservation.time.getDayInfo(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.surfaceTint
+                    )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp),
+                        text = reservation.spot.parkingNumber
+                    )
+                }
+            }
+            Button(
+                onClick = onCancelClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.cancel_reservation),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LevelPicker(
+    modifier: Modifier = Modifier,
+    levelsList: List<LevelData> = listOf(),
+    onLevelClick: (LevelData) -> Unit = {  }
+) {
+    Card(
+        modifier = modifier
+            .alpha(0.7f)
+            .padding(12.dp)
+            .zIndex(1f),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        LazyColumn {
+            items(levelsList) { level ->
+                LevelButton(
+                    level = level,
+                    onLevelClick = onLevelClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LevelButton(
+    modifier: Modifier = Modifier,
+    level: LevelData = LevelData(),
+    onLevelClick: (LevelData) -> Unit = {  },
+) {
+    val levelColor by animateColorAsState(
+        if (level.isSelected) {
+            MaterialTheme.colorScheme.onTertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer
+        }
+    )
+
+    val levelNumberColor by animateColorAsState(
+        if (level.isSelected) {
+            MaterialTheme.colorScheme.surfaceTint
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+    )
+
+    Button(
+        modifier = modifier.size(40.dp),
+        onClick = { onLevelClick(level) },
+        shape = RoundedCornerShape(0),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = levelColor,
+            contentColor = levelNumberColor
+        ),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Text(
+            text = level.level.levelNumber
         )
     }
 }
