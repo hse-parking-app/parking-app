@@ -44,6 +44,8 @@ import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetL
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetState
 import com.hse.parkingapp.ui.beta.screens.components.material3.ModalBottomSheetValue
 import com.hse.parkingapp.ui.beta.screens.components.material3.rememberModalBottomSheetState
+import com.hse.parkingapp.ui.main.fab.FabState
+import com.hse.parkingapp.ui.main.fab.TripleFAB
 import com.hse.parkingapp.ui.theme.ParkingAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -66,6 +68,7 @@ fun MainScreen(
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     )
+    val fabState = remember { mutableStateOf(FabState.COLLAPSED) }
     val scope = rememberCoroutineScope()
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -75,10 +78,12 @@ fun MainScreen(
                 dayDataState = dayDataState,
                 onDayDataClick = { day ->
                     handleEvent(SelectorEvent.DayChanged(day))
+                    fabState.value = FabState.COLLAPSED
                 },
                 timeDataState = timeDataState,
                 onTimeDataClick = { time ->
                     handleEvent(SelectorEvent.TimeChanged(time))
+                    fabState.value = FabState.COLLAPSED
                 }
             )
             LevelPicker(
@@ -86,7 +91,12 @@ fun MainScreen(
                 levelsList = levelDataState.levelDataList,
                 onLevelClick = { level ->
                     handleEvent(SelectorEvent.LevelChanged(level))
+                    fabState.value = FabState.COLLAPSED
                 }
+            )
+            TripleFAB(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                fabState = fabState
             )
         } else {
             ReservationInfo(
@@ -105,7 +115,8 @@ fun MainScreen(
                 }
             },
             employee = employee,
-            reservation = reservation
+            reservation = reservation,
+            fabState = fabState
         )
     }
     if (employee.cars.isNotEmpty()) {
@@ -113,9 +124,10 @@ fun MainScreen(
             bottomSheetState = bottomSheetState,
             selectorState = selectorState,
             onBookClick = {
-            scope.launch {
-                handleEvent(SelectorEvent.SpotBooked)
-                bottomSheetState.hide()}
+                scope.launch {
+                    handleEvent(SelectorEvent.SpotBooked)
+                    bottomSheetState.hide()
+                }
             },
             employee = employee
         )
@@ -360,7 +372,8 @@ fun SpotCanvas(
     spots: List<Spot> = emptyList(),
     onSpotClick: (spot: Spot) -> Unit = {  },
     employee: Employee = Employee(),
-    reservation: Reservation = Reservation()
+    reservation: Reservation = Reservation(),
+    fabState: MutableState<FabState> = remember { mutableStateOf(FabState.COLLAPSED) },
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -374,15 +387,20 @@ fun SpotCanvas(
                 detectTransformGestures { _, pan, zoom, _ ->
                     scope.launch {
                         scale.snapTo((scale.value * zoom).coerceIn(0.5f, 2f))
+
+                        offsetX = (offsetX + pan.x).coerceIn(
+                            -canvas.width.toFloat() * scale.value,
+                            canvas.width.toFloat() * scale.value
+                        )
+                        offsetY = (offsetY + pan.y).coerceIn(
+                            -canvas.height.toFloat() * scale.value,
+                            canvas.height.toFloat() * scale.value
+                        )
+
+                        if (fabState.value == FabState.EXPANDED) {
+                            fabState.value = FabState.COLLAPSED
+                        }
                     }
-                    offsetX = (offsetX + pan.x).coerceIn(
-                        -canvas.width.toFloat() * scale.value,
-                        canvas.width.toFloat() * scale.value
-                    )
-                    offsetY = (offsetY + pan.y).coerceIn(
-                        -canvas.height.toFloat() * scale.value,
-                        canvas.height.toFloat() * scale.value
-                    )
                 }
             }
     ) {
@@ -411,7 +429,12 @@ fun SpotCanvas(
                     isAvailable = spot.isAvailable,
                     isFree = spot.isFree,
                     isReserved = employee.reservation != null && spot.id == reservation.spot.id,
-                    onClick = { if (spot.isFree && spot.isAvailable) onSpotClick(spot) }
+                    onClick = {
+                        if (spot.isFree && spot.isAvailable) {
+                            onSpotClick(spot)
+                        }
+                        fabState.value = FabState.COLLAPSED
+                    }
                 )
             }
         }
