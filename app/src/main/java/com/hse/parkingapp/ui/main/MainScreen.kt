@@ -96,7 +96,9 @@ fun MainScreen(
             )
             TripleFAB(
                 modifier = Modifier.align(Alignment.BottomEnd),
-                fabState = fabState
+                fabState = fabState,
+                onExitClick = { handleEvent(SelectorEvent.Exit) },
+                onBuildingClick = { handleEvent(SelectorEvent.SelectBuilding) }
             )
         } else {
             ReservationInfo(

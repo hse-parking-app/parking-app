@@ -42,4 +42,14 @@ sealed class SelectorEvent {
      * @param level The new selected level.
      */
     class LevelChanged(val level: LevelData): SelectorEvent()
+
+    /**
+     * Event indicating a comeback to login screen
+     */
+    object Exit: SelectorEvent()
+
+    /**
+     * Event indicating a comeback to buildings selection screen
+     */
+    object SelectBuilding: SelectorEvent()
 }
