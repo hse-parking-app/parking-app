@@ -282,6 +282,7 @@ fun DateChooser(
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .height(225.dp)
             .zIndex(1f),
         shadowElevation = 8.dp
     ) {
@@ -349,7 +350,7 @@ fun TimesRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(43.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(text = stringResource(id = R.string.no_place_to_reserve))
@@ -357,7 +358,7 @@ fun TimesRow(
     } else {
         LazyRow(
             state = listState,
-            contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 16.dp, end = 16.dp),
+            contentPadding = PaddingValues(top = 20.dp, start = 16.dp, end = 16.dp), // top = 20.dp, bottom = 32.dp,
         ) {
             items(timesList) { time ->
                 TimeButton(
