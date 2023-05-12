@@ -29,6 +29,7 @@ import com.hse.parkingapp.ui.signin.AuthenticationState
 import com.hse.parkingapp.utils.errors.CurrentError
 import com.hse.parkingapp.utils.errors.ErrorType
 import com.hse.parkingapp.utils.parking.ParkingManager
+import com.hse.parkingapp.utils.token.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -41,7 +42,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val parkingRepository: ParkingRepository,
-    private val parkingManager: ParkingManager
+    private val parkingManager: ParkingManager,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     // These channels are responsible for network error handling
@@ -183,7 +185,20 @@ class MainViewModel @Inject constructor(
             is SelectorEvent.LevelChanged -> {
                 updateLevel(selectorEvent.level)
             }
+            is SelectorEvent.Exit -> {
+                exit()
+            }
+            is SelectorEvent.SelectBuilding -> {
+                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
+            }
         }
+    }
+
+    private fun exit() {
+        tokenManager.deleteAccessToken()
+        tokenManager.deleteRefreshToken()
+
+        changeCurrentScreen(newScreen = Screen.SignScreen)
     }
 
     private fun updateLevel(level: LevelData) {
