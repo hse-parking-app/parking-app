@@ -35,5 +35,5 @@ sealed class Screen(val route: String) {
  * @property screen The current [Screen] being displayed. Defaults to [Screen.SplashScreen].
  */
 data class CurrentScreen(
-    val screen: Screen = Screen.SplashScreen
+    val screen: Screen = Screen.SplashScreen,
 )

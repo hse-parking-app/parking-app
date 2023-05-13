@@ -2,7 +2,7 @@ package com.hse.parkingapp.model.day
 
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
-import java.util.*
+import java.util.Locale
 
 /**
  * Represents day-related data.
@@ -22,7 +22,7 @@ data class DayData(
     val date: ZonedDateTime = ZonedDateTime.now(),
     val isToday: Boolean = false,
     val isLastDayOfMonth: Boolean = date.dayOfMonth == date.month.length(false),
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 ) {
     /**
      * Returns a string representation of the day data.

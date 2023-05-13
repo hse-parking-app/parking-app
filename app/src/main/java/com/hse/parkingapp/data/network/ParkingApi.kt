@@ -1,8 +1,8 @@
 package com.hse.parkingapp.data.network
 
 import com.hse.parkingapp.model.Building
-import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.reservation.ReservationResult
 import retrofit2.Response
@@ -32,7 +32,7 @@ interface ParkingApi {
 
     @POST("reservations/employee")
     suspend fun createReservation(
-        @Body reservationRequest: ReservationRequest
+        @Body reservationRequest: ReservationRequest,
     ): Response<ReservationResult>
 
     @GET("reservations/employee")
@@ -43,11 +43,11 @@ interface ParkingApi {
 
     @DELETE("reservations/{reservationId}/employee")
     suspend fun deleteReservation(
-        @Path("reservationId") reservationId: String
+        @Path("reservationId") reservationId: String,
     ): Response<Unit>
 
     @GET("parkingLevels/{levelId}/spots")
     suspend fun getAllSpotsOnLevel(
-        @Path("levelId") levelId: String
+        @Path("levelId") levelId: String,
     ): Response<List<Spot>>
 }

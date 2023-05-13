@@ -2,8 +2,8 @@ package com.hse.parkingapp.data.repository
 
 import com.hse.parkingapp.data.network.ParkingApi
 import com.hse.parkingapp.model.Building
-import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.reservation.ReservationRequest
 import com.hse.parkingapp.model.reservation.ReservationResult
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class ParkingRepository(
-    private val parkingApi: ParkingApi
+    private val parkingApi: ParkingApi,
 ) {
     suspend fun getBuildings(): Response<List<Building>> {
         return withContext(Dispatchers.IO) {
@@ -42,7 +42,7 @@ class ParkingRepository(
     suspend fun getFreeSpotsInInterval(
         levelId: String,
         startTime: String,
-        endTime: String
+        endTime: String,
     ): Response<List<Spot>> {
         return withContext(Dispatchers.IO) {
             parkingApi.getFreeSpotsInInterval(
@@ -59,7 +59,7 @@ class ParkingRepository(
      * @return A Response object containing the result of the reservation.
      */
     suspend fun createReservation(
-        reservationRequest: ReservationRequest
+        reservationRequest: ReservationRequest,
     ): Response<ReservationResult> {
         return withContext(Dispatchers.IO) {
             parkingApi.createReservation(

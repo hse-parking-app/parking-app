@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CurrentTime(
-    val time: String = ""
+    val time: String = "",
 )

@@ -16,5 +16,5 @@ data class ReservationResult(
     val employeeId: String = "",
     val parkingSpotId: String = "",
     val startTime: String = "",
-    val endTime: String = ""
+    val endTime: String = "",
 )

@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hse.parkingapp.data.repository.AuthRepository
 import com.hse.parkingapp.data.repository.ParkingRepository
-import com.hse.parkingapp.model.day.DayData
-import com.hse.parkingapp.model.day.DayDataState
+import com.hse.parkingapp.model.Building
+import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
-import com.hse.parkingapp.model.Employee
-import com.hse.parkingapp.model.Building
+import com.hse.parkingapp.model.day.DayData
+import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.level.Level
 import com.hse.parkingapp.model.level.LevelData
 import com.hse.parkingapp.model.level.LevelDataState
@@ -23,18 +23,18 @@ import com.hse.parkingapp.ui.buildings.BuildingsEvent
 import com.hse.parkingapp.ui.buildings.BuildingsState
 import com.hse.parkingapp.ui.main.SelectorEvent
 import com.hse.parkingapp.ui.main.SelectorState
-import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.AuthenticationEvent
 import com.hse.parkingapp.ui.signin.AuthenticationState
+import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.utils.errors.CurrentError
 import com.hse.parkingapp.utils.errors.ErrorType
 import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 import javax.inject.Inject
 
@@ -43,7 +43,7 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val parkingRepository: ParkingRepository,
     private val parkingManager: ParkingManager,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
 ) : ViewModel() {
 
     // These channels are responsible for network error handling
@@ -63,9 +63,11 @@ class MainViewModel @Inject constructor(
     val levelsList = MutableStateFlow(LevelDataState())
 
     val authenticationState = MutableStateFlow(AuthenticationState())
-    val selectorState = MutableStateFlow(SelectorState(
-        selectedDay = daysList.value.dayDataList.first()
-    ))
+    val selectorState = MutableStateFlow(
+        SelectorState(
+            selectedDay = daysList.value.dayDataList.first()
+        )
+    )
 
     val buildingsState = MutableStateFlow(BuildingsState())
 
@@ -78,12 +80,15 @@ class MainViewModel @Inject constructor(
             is AuthenticationEvent.EmailChanged -> {
                 updateEmail(authenticationEvent.email)
             }
+
             is AuthenticationEvent.PasswordChanged -> {
                 updatePassword(authenticationEvent.password)
             }
+
             is AuthenticationEvent.SignIn -> {
                 signIn()
             }
+
             is AuthenticationEvent.Authenticate -> {
                 authenticate()
             }
@@ -170,24 +175,31 @@ class MainViewModel @Inject constructor(
             is SelectorEvent.DayChanged -> {
                 updateDay(selectorEvent.day)
             }
+
             is SelectorEvent.TimeChanged -> {
                 updateTime(selectorEvent.time)
             }
+
             is SelectorEvent.SpotChanged -> {
                 updateSpot(selectorEvent.spot)
             }
+
             is SelectorEvent.SpotBooked -> {
                 bookSpot()
             }
+
             is SelectorEvent.CancelReservation -> {
                 cancelReservation()
             }
+
             is SelectorEvent.LevelChanged -> {
                 updateLevel(selectorEvent.level)
             }
+
             is SelectorEvent.Exit -> {
                 exit()
             }
+
             is SelectorEvent.SelectBuilding -> {
                 changeCurrentScreen(newScreen = Screen.BuildingsScreen)
             }
@@ -270,24 +282,25 @@ class MainViewModel @Inject constructor(
 
     private fun getSpotsList() {
         viewModelScope.launch {
-            val spots = if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
-                val rawSpots = parkingRepository.getAllSpotsOnLevel(
-                    levelId = parkingManager.getLevelId() ?: ""
-                ).body()
+            val spots =
+                if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
+                    val rawSpots = parkingRepository.getAllSpotsOnLevel(
+                        levelId = parkingManager.getLevelId() ?: ""
+                    ).body()
 
-                rawSpots?.map{ it.copy(isFree = false) } ?: listOf()
-            } else {
-                val startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime)
-                val endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
+                    rawSpots?.map { it.copy(isFree = false) } ?: listOf()
+                } else {
+                    val startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime)
+                    val endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
 
-                val rawSpots = parkingRepository.getFreeSpotsInInterval(
-                    levelId = parkingManager.getLevelId() ?: "",
-                    startTime = startTime,
-                    endTime = endTime
-                ).body() ?: listOf()
+                    val rawSpots = parkingRepository.getFreeSpotsInInterval(
+                        levelId = parkingManager.getLevelId() ?: "",
+                        startTime = startTime,
+                        endTime = endTime
+                    ).body() ?: listOf()
 
-                rawSpots
-            }
+                    rawSpots
+                }
 
             parking.value = parking.value.copy(
                 spots = spots
@@ -348,10 +361,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun handleBuildingsEvent(buildingsEvent: BuildingsEvent) {
-        when(buildingsEvent) {
+        when (buildingsEvent) {
             is BuildingsEvent.OnBuildingClick -> {
                 onBuildingClick(buildingsEvent.building)
             }
+
             is BuildingsEvent.OnContinueClick -> {
                 onContinueClick()
             }

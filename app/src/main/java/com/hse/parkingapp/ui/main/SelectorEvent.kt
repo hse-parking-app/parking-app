@@ -1,7 +1,7 @@
 package com.hse.parkingapp.ui.main
 
-import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.level.LevelData
 import com.hse.parkingapp.model.time.TimeData
 
@@ -13,43 +13,43 @@ sealed class SelectorEvent {
      * Event indicating that the selected day has changed.
      * @param day The new selected day.
      */
-    class DayChanged(val day: DayData): SelectorEvent()
+    class DayChanged(val day: DayData) : SelectorEvent()
 
     /**
      * Event indicating that the selected time has changed.
      * @param time The new selected time.
      */
-    class TimeChanged(val time: TimeData): SelectorEvent()
+    class TimeChanged(val time: TimeData) : SelectorEvent()
 
     /**
      * Event indicating that the selected spot has changed.
      * @param spot The new selected spot.
      */
-    class SpotChanged(val spot: Spot): SelectorEvent()
+    class SpotChanged(val spot: Spot) : SelectorEvent()
 
     /**
      * Event indicating that a spot has been booked.
      */
-    object SpotBooked: SelectorEvent()
+    object SpotBooked : SelectorEvent()
 
     /**
      * Event indicating a cancellation of a reservation.
      */
-    object CancelReservation: SelectorEvent()
+    object CancelReservation : SelectorEvent()
 
     /**
      * Event indicating that the selected level has changed.
      * @param level The new selected level.
      */
-    class LevelChanged(val level: LevelData): SelectorEvent()
+    class LevelChanged(val level: LevelData) : SelectorEvent()
 
     /**
      * Event indicating a comeback to login screen
      */
-    object Exit: SelectorEvent()
+    object Exit : SelectorEvent()
 
     /**
      * Event indicating a comeback to buildings selection screen
      */
-    object SelectBuilding: SelectorEvent()
+    object SelectBuilding : SelectorEvent()
 }

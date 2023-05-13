@@ -12,7 +12,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 class LevelDataState(
     levels: List<Level> = listOf(),
     val selectedLevelId: String = "",
-    val levelDataList: SnapshotStateList<LevelData> = mutableStateListOf()
+    val levelDataList: SnapshotStateList<LevelData> = mutableStateListOf(),
 ) {
     init {
         var id = 0

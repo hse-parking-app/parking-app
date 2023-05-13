@@ -13,7 +13,7 @@ import java.time.ZonedDateTime
  */
 class TimeDataState(
     currentTime: ZonedDateTime = ZonedDateTime.now(),
-    val timeDataList: SnapshotStateList<TimeData> = mutableStateListOf()
+    val timeDataList: SnapshotStateList<TimeData> = mutableStateListOf(),
 ) {
     /**
      * Initializes the TimeDataState object with the provided current time.

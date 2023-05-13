@@ -19,7 +19,7 @@ data class TimeData(
     val id: Int = 0,
     val startTime: ZonedDateTime = ZonedDateTime.now(),
     val endTime: ZonedDateTime = ZonedDateTime.now(),
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 ) {
     /**
      * Returns a string representation of the time data.

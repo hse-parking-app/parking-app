@@ -19,5 +19,5 @@ data class Employee(
     val email: String = "egor@egor.egor",
     val cars: MutableList<Car> = mutableListOf(),
     val reservation: ReservationResult? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
 )

@@ -14,7 +14,7 @@ import retrofit2.http.POST
 interface AuthApi {
     @POST("auth/login")
     suspend fun signIn(
-        @Body request: AuthRequest
+        @Body request: AuthRequest,
     ): Response<TokenResponse>
 
     @GET("auth/whoami")
@@ -22,7 +22,7 @@ interface AuthApi {
 
     @POST("auth/update/access")
     suspend fun updateAccessToken(
-        @Body refreshRequest: RefreshRequest
+        @Body refreshRequest: RefreshRequest,
     ): Response<TokenResponse>
 
     @GET("cars/employee")

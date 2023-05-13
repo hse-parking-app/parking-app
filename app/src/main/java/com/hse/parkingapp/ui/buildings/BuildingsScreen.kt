@@ -32,7 +32,7 @@ import com.hse.parkingapp.model.Building
 fun BuildingsScreen(
     modifier: Modifier = Modifier,
     buildingsState: BuildingsState = BuildingsState(),
-    handleEvent: (BuildingsEvent) -> Unit = {  }
+    handleEvent: (BuildingsEvent) -> Unit = { },
 ) {
     Column(
         modifier = modifier
@@ -56,7 +56,7 @@ fun BuildingsScreen(
 
 @Composable
 fun Header(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
         modifier = modifier.padding(top = 16.dp, bottom = 8.dp),
@@ -71,7 +71,7 @@ fun BuildingsColumn(
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
     buildingsList: List<Building> = listOf(),
-    onBuildingClick: (Building) -> Unit = {  }
+    onBuildingClick: (Building) -> Unit = { },
 ) {
     LazyColumn(
         modifier = modifier,
@@ -91,11 +91,11 @@ fun BuildingsColumn(
 fun BuildingButton(
     modifier: Modifier = Modifier,
     building: Building = Building(),
-    onBuildingClick: (Building) -> Unit = {  }
+    onBuildingClick: (Building) -> Unit = { },
 ) {
     val buttonColor by animateColorAsState(
         if (building.isSelected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.surfaceVariant
     )
 
     val textColor by animateColorAsState(
@@ -140,7 +140,7 @@ fun BuildingButton(
 fun Continue(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
-    onContinueClick: () -> Unit = {  }
+    onContinueClick: () -> Unit = { },
 ) {
     Button(
         onClick = onContinueClick,

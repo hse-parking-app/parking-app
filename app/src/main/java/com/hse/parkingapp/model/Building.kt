@@ -8,5 +8,5 @@ data class Building(
     val name: String = "",
     val address: String = "",
     val numberOfLevels: Int = 0,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )
