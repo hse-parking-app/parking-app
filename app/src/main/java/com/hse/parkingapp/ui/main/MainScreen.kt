@@ -712,7 +712,7 @@ fun LevelButton(
     )
 
     Button(
-        modifier = modifier.size(40.dp),
+        modifier = modifier.size(44.dp),
         onClick = { onLevelClick(level) },
         shape = RoundedCornerShape(0),
         colors = ButtonDefaults.buttonColors(
