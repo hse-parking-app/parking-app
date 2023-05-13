@@ -1,6 +1,7 @@
 package com.hse.parkingapp.ui.buildings
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,6 +75,7 @@ fun BuildingsColumn(
 ) {
     LazyColumn(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState,
     ) {
         items(buildingsList) { building ->
@@ -96,15 +98,19 @@ fun BuildingButton(
             else MaterialTheme.colorScheme.surfaceVariant
     )
 
+    val textColor by animateColorAsState(
+        if (building.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    )
+
     Button(
         modifier = modifier
-            .padding(vertical = 4.dp)
             .fillMaxWidth(),
         onClick = { onBuildingClick(building) },
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = buttonColor,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = textColor
         )
     ) {
         Column(
@@ -121,10 +127,6 @@ fun BuildingButton(
                     .padding(top = 8.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Address",
-                    style = MaterialTheme.typography.bodyMedium
-                )
                 Text(
                     text = building.address,
                     style = MaterialTheme.typography.bodyMedium
