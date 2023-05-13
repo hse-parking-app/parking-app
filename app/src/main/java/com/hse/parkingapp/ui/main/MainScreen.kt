@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -351,7 +352,7 @@ fun TimesRow(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = "No available options to book for today.")
+            Text(text = stringResource(id = R.string.no_place_to_reserve))
         }
     } else {
         LazyRow(
@@ -453,6 +454,11 @@ fun TimeButton(
         else MaterialTheme.colorScheme.surfaceVariant
     )
 
+    val textColor by animateColorAsState(
+        if (timeData.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    )
+
     Button(
         onClick = { onTimeDataClick(timeData) },
         shape = MaterialTheme.shapes.medium,
@@ -468,7 +474,7 @@ fun TimeButton(
         Text(
             text = timeData.toString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
@@ -547,6 +553,11 @@ fun DayButton(
         else MaterialTheme.colorScheme.surfaceVariant
     )
 
+    val textColor by animateColorAsState(
+        if (dayData.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    )
+
     Button(
         onClick = { onDayDataClick(dayData) },
         modifier = Modifier
@@ -564,7 +575,7 @@ fun DayButton(
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = buttonColor,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = textColor
         ),
         contentPadding = PaddingValues(0.dp)
     ) {
@@ -666,11 +677,11 @@ fun LevelPicker(
 ) {
     Card(
         modifier = modifier
-            .alpha(0.7f)
+            .alpha(0.85f)
             .padding(12.dp)
             .zIndex(1f),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = 2.dp
         )
     ) {
         LazyColumn {
@@ -691,19 +702,13 @@ fun LevelButton(
     onLevelClick: (LevelData) -> Unit = { },
 ) {
     val levelColor by animateColorAsState(
-        if (level.isSelected) {
-            MaterialTheme.colorScheme.onTertiaryContainer
-        } else {
-            MaterialTheme.colorScheme.tertiaryContainer
-        }
+        if (level.isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
     )
 
     val levelNumberColor by animateColorAsState(
-        if (level.isSelected) {
-            MaterialTheme.colorScheme.surfaceTint
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
+        if (level.isSelected && !isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
     )
 
     Button(
