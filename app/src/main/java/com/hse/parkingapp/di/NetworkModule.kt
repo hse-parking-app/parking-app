@@ -56,7 +56,7 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         interceptor: AuthInterceptor,
-        authenticator: AuthAuthenticator
+        authenticator: AuthAuthenticator,
     ): OkHttpClient = OkHttpClient.Builder().apply {
         val logging = HttpLoggingInterceptor()
         logging.setLevel(HttpLoggingInterceptor.Level.BODY)
@@ -76,7 +76,7 @@ object NetworkModule {
     @Singleton
     fun provideParkingApi(
         okHttpClient: OkHttpClient,
-        retrofit: Retrofit.Builder
+        retrofit: Retrofit.Builder,
     ): ParkingApi =
         retrofit
             .client(okHttpClient)
@@ -87,7 +87,7 @@ object NetworkModule {
     @Singleton
     fun provideAuthApi(
         okHttpClient: OkHttpClient,
-        retrofit: Retrofit.Builder
+        retrofit: Retrofit.Builder,
     ): AuthApi =
         retrofit
             .client(okHttpClient)
@@ -99,7 +99,7 @@ object NetworkModule {
     fun provideAuthRepository(
         api: AuthApi,
         tokenManager: TokenManager,
-        parkingManager: ParkingManager
+        parkingManager: ParkingManager,
     ): AuthRepository {
         return AuthRepository(api, tokenManager, parkingManager)
     }

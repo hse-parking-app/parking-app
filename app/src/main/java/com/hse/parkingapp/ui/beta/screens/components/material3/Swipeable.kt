@@ -78,7 +78,7 @@ import kotlin.math.sin
 open class SwipeableState<T>(
     initialValue: T,
     internal val animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec,
-    internal val confirmStateChange: (newValue: T) -> Boolean = { true }
+    internal val confirmStateChange: (newValue: T) -> Boolean = { true },
 ) {
     /**
      * The current value of the state.
@@ -144,7 +144,7 @@ open class SwipeableState<T>(
 
     internal suspend fun processNewAnchors(
         oldAnchors: Map<Float, T>,
-        newAnchors: Map<Float, T>
+        newAnchors: Map<Float, T>,
     ) {
         if (oldAnchors.isEmpty()) {
             // If this is the first time that we receive anchors, then we need to initialise
@@ -269,11 +269,13 @@ open class SwipeableState<T>(
                     to = currentValue
                     fraction = 1f
                 }
+
                 1 -> {
                     from = anchors.getValue(bounds[0])
                     to = anchors.getValue(bounds[0])
                     fraction = 1f
                 }
+
                 else -> {
                     val (a, b) =
                         if (direction > 0f) {
@@ -405,7 +407,7 @@ open class SwipeableState<T>(
          */
         fun <T : Any> Saver(
             animationSpec: AnimationSpec<Float>,
-            confirmStateChange: (T) -> Boolean
+            confirmStateChange: (T) -> Boolean,
         ) = Saver<SwipeableState<T>, T>(
             save = { it.currentValue },
             restore = { SwipeableState(it, animationSpec, confirmStateChange) }
@@ -429,7 +431,7 @@ class SwipeProgress<T>(
     val from: T,
     val to: T,
     /*@FloatRange(from = 0.0, to = 1.0)*/
-    val fraction: Float
+    val fraction: Float,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -466,7 +468,7 @@ class SwipeProgress<T>(
 fun <T : Any> rememberSwipeableState(
     initialValue: T,
     animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec,
-    confirmStateChange: (newValue: T) -> Boolean = { true }
+    confirmStateChange: (newValue: T) -> Boolean = { true },
 ): SwipeableState<T> {
     return rememberSaveable(
         saver = SwipeableState.Saver(
@@ -495,7 +497,7 @@ fun <T : Any> rememberSwipeableState(
 internal fun <T : Any> rememberSwipeableStateFor(
     value: T,
     onValueChange: (T) -> Unit,
-    animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec
+    animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec,
 ): SwipeableState<T> {
     val swipeableState = remember {
         SwipeableState(
@@ -567,7 +569,7 @@ fun <T> Modifier.swipeable(
     interactionSource: MutableInteractionSource? = null,
     thresholds: (from: T, to: T) -> ThresholdConfig = { _, _ -> FixedThreshold(56.dp) },
     resistance: ResistanceConfig? = resistanceConfig(anchors.keys),
-    velocityThreshold: Dp = VelocityThreshold
+    velocityThreshold: Dp = VelocityThreshold,
 ) = composed(
     inspectorInfo = debugInspectorInfo {
         name = "swipeable"
@@ -652,7 +654,7 @@ data class FixedThreshold(private val offset: Dp) : ThresholdConfig {
 @ExperimentalMaterial3Api
 data class FractionalThreshold(
     /*@FloatRange(from = 0.0, to = 1.0)*/
-    private val fraction: Float
+    private val fraction: Float,
 ) : ThresholdConfig {
     override fun Density.computeThreshold(fromValue: Float, toValue: Float): Float {
         return lerp(fromValue, toValue, fraction)
@@ -688,7 +690,7 @@ class ResistanceConfig(
     /*@FloatRange(from = 0.0)*/
     val factorAtMin: Float = StandardResistanceFactor,
     /*@FloatRange(from = 0.0)*/
-    val factorAtMax: Float = StandardResistanceFactor
+    val factorAtMax: Float = StandardResistanceFactor,
 ) {
     fun computeResistance(overflow: Float): Float {
         val factor = if (overflow < 0) factorAtMin else factorAtMax
@@ -731,7 +733,7 @@ class ResistanceConfig(
  */
 private fun findBounds(
     offset: Float,
-    anchors: Set<Float>
+    anchors: Set<Float>,
 ): List<Float> {
     // Find the anchors the target lies between with a little bit of rounding error.
     val a = anchors.filter { it <= offset + 0.001 }.maxOrNull()
@@ -741,14 +743,17 @@ private fun findBounds(
         a == null ->
             // case 1 or 3
             listOfNotNull(b)
+
         b == null ->
             // case 4
             listOf(a)
+
         a == b ->
             // case 2
             // Can't return offset itself here since it might not be exactly equal
             // to the anchor, despite being considered an exact match.
             listOf(a)
+
         else ->
             // case 5
             listOf(a, b)
@@ -761,7 +766,7 @@ private fun computeTarget(
     anchors: Set<Float>,
     thresholds: (Float, Float) -> Float,
     velocity: Float,
-    velocityThreshold: Float
+    velocityThreshold: Float,
 ): Float {
     val bounds = findBounds(offset, anchors)
     return when (bounds.size) {
@@ -828,7 +833,7 @@ object SwipeableDefaults {
     fun resistanceConfig(
         anchors: Set<Float>,
         factorAtMin: Float = StandardResistanceFactor,
-        factorAtMax: Float = StandardResistanceFactor
+        factorAtMax: Float = StandardResistanceFactor,
     ): ResistanceConfig? {
         return if (anchors.size <= 1) {
             null
@@ -856,7 +861,7 @@ internal val <T> SwipeableState<T>.PreUpPostDownNestedScrollConnection: NestedSc
         override fun onPostScroll(
             consumed: Offset,
             available: Offset,
-            source: NestedScrollSource
+            source: NestedScrollSource,
         ): Offset {
             return if (source == NestedScrollSource.Drag) {
                 performDrag(available.toFloat()).toOffset()

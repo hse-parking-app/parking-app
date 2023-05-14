@@ -9,5 +9,5 @@ data class Car(
     val model: String = "",
     val lengthMeters: Double = 0.0,
     val weightTons: Double = 0.0,
-    val registryNumber: String = "В007ОР152"
+    val registryNumber: String = "В007ОР152",
 )

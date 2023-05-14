@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -32,9 +33,9 @@ import com.hse.parkingapp.R
 import com.hse.parkingapp.model.Canvas
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
+import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
-import com.hse.parkingapp.model.Spot
 import com.hse.parkingapp.model.level.LevelData
 import com.hse.parkingapp.model.level.LevelDataState
 import com.hse.parkingapp.model.reservation.Reservation
@@ -58,12 +59,12 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     selectorState: SelectorState = SelectorState(),
     parking: Parking = Parking(),
-    handleEvent: (event: SelectorEvent) -> Unit = {  },
+    handleEvent: (event: SelectorEvent) -> Unit = { },
     dayDataState: DayDataState = DayDataState(),
     timeDataState: TimeDataState = TimeDataState(),
     levelDataState: LevelDataState = LevelDataState(),
     employee: Employee = Employee(),
-    reservation: Reservation = Reservation()
+    reservation: Reservation = Reservation(),
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
@@ -144,8 +145,8 @@ fun BottomSheet(
         initialValue = ModalBottomSheetValue.Hidden
     ),
     selectorState: SelectorState = SelectorState(),
-    onBookClick: () -> Unit = {  },
-    employee: Employee = Employee()
+    onBookClick: () -> Unit = { },
+    employee: Employee = Employee(),
 ) {
     ModalBottomSheetLayout(
         modifier = modifier,
@@ -239,13 +240,13 @@ fun BottomSheet(
                 }
             }
         }
-    ) {  }
+    ) { }
 }
 
 @Composable
 fun BottomSheetFeature(
     @StringRes feature: Int = R.string.place,
-    content: @Composable () -> Unit = {  }
+    content: @Composable () -> Unit = { },
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -267,9 +268,9 @@ fun BottomSheetFeature(
 fun DateChooser(
     modifier: Modifier = Modifier,
     dayDataState: DayDataState = DayDataState(),
-    onDayDataClick: (day: DayData) -> Unit = {  },
+    onDayDataClick: (day: DayData) -> Unit = { },
     timeDataState: TimeDataState = TimeDataState(),
-    onTimeDataClick: (TimeData) -> Unit = {  }
+    onTimeDataClick: (TimeData) -> Unit = { },
 ) {
     val listState = rememberLazyListState()
     val monthName by remember {
@@ -306,7 +307,7 @@ fun DateChooser(
 
 @Composable
 fun MonthText(
-    monthName: String = "January"
+    monthName: String = "January",
 ) {
     Text(
         text = monthName,
@@ -323,7 +324,7 @@ fun MonthText(
 fun DaysRow(
     listState: LazyListState = rememberLazyListState(),
     daysList: List<DayData> = listOf(),
-    onDayDataClick: (DayData) -> Unit = {  }
+    onDayDataClick: (DayData) -> Unit = { },
 ) {
     LazyRow(
         state = listState,
@@ -342,7 +343,7 @@ fun DaysRow(
 fun TimesRow(
     listState: LazyListState = rememberLazyListState(),
     timesList: List<TimeData> = listOf(),
-    onTimeDataClick: (TimeData) -> Unit = {  }
+    onTimeDataClick: (TimeData) -> Unit = { },
 ) {
     if (timesList.isEmpty()) {
         Row(
@@ -351,7 +352,7 @@ fun TimesRow(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = "No available options to book for today.")
+            Text(text = stringResource(id = R.string.no_place_to_reserve))
         }
     } else {
         LazyRow(
@@ -372,7 +373,7 @@ fun TimesRow(
 fun SpotCanvas(
     canvas: Canvas = Canvas(0, 0),
     spots: List<Spot> = emptyList(),
-    onSpotClick: (spot: Spot) -> Unit = {  },
+    onSpotClick: (spot: Spot) -> Unit = { },
     employee: Employee = Employee(),
     reservation: Reservation = Reservation(),
     fabState: MutableState<FabState> = remember { mutableStateOf(FabState.COLLAPSED) },
@@ -446,11 +447,16 @@ fun SpotCanvas(
 @Composable
 fun TimeButton(
     timeData: TimeData = TimeData(),
-    onTimeDataClick: (TimeData) -> Unit = {  }
+    onTimeDataClick: (TimeData) -> Unit = { },
 ) {
     val buttonColor by animateColorAsState(
         if (timeData.isSelected) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    val textColor by animateColorAsState(
+        if (timeData.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
     )
 
     Button(
@@ -468,7 +474,7 @@ fun TimeButton(
         Text(
             text = timeData.toString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
@@ -482,8 +488,8 @@ fun SpotButton(
     parkingNumber: String = "",
     isAvailable: Boolean = true,
     isFree: Boolean = false,
-    onClick: () -> Unit = {  },
-    isReserved: Boolean = false
+    onClick: () -> Unit = { },
+    isReserved: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -507,7 +513,7 @@ fun SpotButton(
         if (isFree && isAvailable) {
             MaterialTheme.colorScheme.tertiary
         } else if (isReserved) {
-          MaterialTheme.colorScheme.primaryContainer
+            MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.tertiaryContainer
         }
@@ -525,8 +531,7 @@ fun SpotButton(
             .graphicsLayer(
                 scaleX = sizeScale,
                 scaleY = sizeScale
-            )
-        ,
+            ),
         interactionSource = interactionSource,
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(0.dp)
@@ -541,11 +546,16 @@ fun SpotButton(
 @Composable
 fun DayButton(
     dayData: DayData = DayData(),
-    onDayDataClick: (DayData) -> Unit = {  }
+    onDayDataClick: (DayData) -> Unit = { },
 ) {
     val buttonColor by animateColorAsState(
         if (dayData.isSelected) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    val textColor by animateColorAsState(
+        if (dayData.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
     )
 
     Button(
@@ -558,11 +568,14 @@ fun DayButton(
                 end = if (dayData.isLastDayOfMonth) 12.dp else 4.dp
             )
             .size(50.dp),
-        border = if(dayData.isToday) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
+        border = if (dayData.isToday) BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline
+        ) else null,
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = buttonColor,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = textColor
         ),
         contentPadding = PaddingValues(0.dp)
     ) {
@@ -581,7 +594,7 @@ fun DayButton(
 fun ReservationInfo(
     modifier: Modifier = Modifier,
     reservation: Reservation = Reservation(),
-    onCancelClick: () -> Unit = {  }
+    onCancelClick: () -> Unit = { },
 ) {
     Card(
         modifier = modifier
@@ -660,15 +673,15 @@ fun ReservationInfo(
 fun LevelPicker(
     modifier: Modifier = Modifier,
     levelsList: List<LevelData> = listOf(),
-    onLevelClick: (LevelData) -> Unit = {  }
+    onLevelClick: (LevelData) -> Unit = { },
 ) {
     Card(
         modifier = modifier
-            .alpha(0.7f)
+            .alpha(0.85f)
             .padding(12.dp)
             .zIndex(1f),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = 2.dp
         )
     ) {
         LazyColumn {
@@ -686,26 +699,20 @@ fun LevelPicker(
 fun LevelButton(
     modifier: Modifier = Modifier,
     level: LevelData = LevelData(),
-    onLevelClick: (LevelData) -> Unit = {  },
+    onLevelClick: (LevelData) -> Unit = { },
 ) {
     val levelColor by animateColorAsState(
-        if (level.isSelected) {
-            MaterialTheme.colorScheme.onTertiaryContainer
-        } else {
-            MaterialTheme.colorScheme.tertiaryContainer
-        }
+        if (level.isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
     )
 
     val levelNumberColor by animateColorAsState(
-        if (level.isSelected) {
-            MaterialTheme.colorScheme.surfaceTint
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
+        if (level.isSelected && !isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
     )
 
     Button(
-        modifier = modifier.size(40.dp),
+        modifier = modifier.size(44.dp),
         onClick = { onLevelClick(level) },
         shape = RoundedCornerShape(0),
         colors = ButtonDefaults.buttonColors(

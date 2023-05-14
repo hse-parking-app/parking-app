@@ -8,26 +8,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.hse.parkingapp.R
 
-val sfProDisplay = FontFamily(
-    Font(R.font.sfpro_display_regular),
+val sfProRounded = FontFamily(
+    Font(R.font.sfpro_rounded_regular),
     Font(
-        R.font.sfpro_display_semibold,
+        R.font.sfpro_rounded_semibold,
         weight = FontWeight.SemiBold
     ),
     Font(
-        R.font.sfpro_display_bold,
-        weight = FontWeight.Bold
-    )
-)
-
-val sfProText = FontFamily(
-    Font(R.font.sfpro_regular),
-    Font(
-        R.font.sfpro_semibold,
-        weight = FontWeight.SemiBold
-    ),
-    Font(
-        R.font.sfpro_medium,
+        R.font.sfpro_rounded_medium,
         weight = FontWeight.Medium
     )
 )
@@ -35,44 +23,44 @@ val sfProText = FontFamily(
 // Set of Material typography styles to start with
 val Typography = Typography(
     titleLarge = TextStyle(
-        fontFamily = sfProText,
+        fontFamily = sfProRounded,
         fontWeight = FontWeight.Medium,
         fontSize = 100.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = sfProDisplay,
+        fontFamily = sfProRounded,
         fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = sfProText,
+        fontFamily = sfProRounded,
         fontWeight = FontWeight.SemiBold,
         fontSize = 17.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = sfProDisplay,
+        fontFamily = sfProRounded,
         fontSize = 16.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = sfProDisplay,
+        fontFamily = sfProRounded,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = sfProDisplay,
+        fontFamily = sfProRounded,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = sfProText,
+        fontFamily = sfProRounded,
         fontSize = 13.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = sfProText,
+        fontFamily = sfProRounded,
         fontSize = 17.sp
     ),
     displayMedium = TextStyle(
-        fontFamily = sfProDisplay,
-        fontSize = 28.sp
+        fontFamily = sfProRounded,
+        fontSize = 24.sp
     )
 )

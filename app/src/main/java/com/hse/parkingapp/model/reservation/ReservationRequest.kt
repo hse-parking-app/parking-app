@@ -13,5 +13,5 @@ data class ReservationRequest(
     val carId: String = "",
     val parkingSpotId: String = "",
     val startTime: String = "",
-    val endTime: String = ""
+    val endTime: String = "",
 )

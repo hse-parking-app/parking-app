@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
 class AuthRepository(
     private val authApi: AuthApi,
     private val tokenManager: TokenManager,
-    private val parkingManager: ParkingManager
+    private val parkingManager: ParkingManager,
 ) {
     /**
      * Retrieves the current time from the server and calculates

@@ -95,7 +95,7 @@ enum class ModalBottomSheetValue {
 class ModalBottomSheetState(
     initialValue: ModalBottomSheetValue,
     animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec,
-    confirmStateChange: (ModalBottomSheetValue) -> Boolean = { true }
+    confirmStateChange: (ModalBottomSheetValue) -> Boolean = { true },
 ) : SwipeableState<ModalBottomSheetValue>(
     initialValue = initialValue,
     animationSpec = animationSpec,
@@ -160,7 +160,7 @@ class ModalBottomSheetState(
          */
         fun Saver(
             animationSpec: AnimationSpec<Float>,
-            confirmStateChange: (ModalBottomSheetValue) -> Boolean
+            confirmStateChange: (ModalBottomSheetValue) -> Boolean,
         ): Saver<ModalBottomSheetState, *> = Saver(
             save = { it.currentValue },
             restore = {
@@ -186,7 +186,7 @@ class ModalBottomSheetState(
 fun rememberModalBottomSheetState(
     initialValue: ModalBottomSheetValue,
     animationSpec: AnimationSpec<Float> = SwipeableDefaults.AnimationSpec,
-    confirmStateChange: (ModalBottomSheetValue) -> Boolean = { true }
+    confirmStateChange: (ModalBottomSheetValue) -> Boolean = { true },
 ): ModalBottomSheetState {
     return rememberSaveable(
         saver = ModalBottomSheetState.Saver(
@@ -242,7 +242,7 @@ fun ModalBottomSheetLayout(
     sheetBackgroundColor: Color = MaterialTheme.colorScheme.surface,
     sheetContentColor: Color = contentColorFor(sheetBackgroundColor),
     scrimColor: Color = ModalBottomSheetDefaults.scrimColor,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     BoxWithConstraints(modifier) {
@@ -318,7 +318,7 @@ fun ModalBottomSheetLayout(
 private fun Modifier.bottomSheetSwipeable(
     sheetState: ModalBottomSheetState,
     fullHeight: Float,
-    sheetHeightState: State<Float?>
+    sheetHeightState: State<Float?>,
 ): Modifier {
     val sheetHeight = sheetHeightState.value
     val modifier = if (sheetHeight != null) {
@@ -352,7 +352,7 @@ private fun Modifier.bottomSheetSwipeable(
 private fun Scrim(
     color: Color,
     onDismiss: () -> Unit,
-    visible: Boolean
+    visible: Boolean,
 ) {
     if (color.isSpecified) {
         val alpha by animateFloatAsState(

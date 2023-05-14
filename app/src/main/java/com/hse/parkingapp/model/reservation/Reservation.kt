@@ -10,5 +10,5 @@ import com.hse.parkingapp.model.time.TimeData
  */
 data class Reservation(
     val spot: Spot = Spot(),
-    val time: TimeData = TimeData()
+    val time: TimeData = TimeData(),
 )

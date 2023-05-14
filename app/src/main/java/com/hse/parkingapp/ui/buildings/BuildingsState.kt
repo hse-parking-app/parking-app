@@ -13,7 +13,7 @@ import com.hse.parkingapp.model.Building
 data class BuildingsState(
     val buildingList: SnapshotStateList<Building> = mutableStateListOf(),
     val selectedBuilding: Building? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
 ) {
     /**
      * Clears the building list and then inflates it with the provided [list] of buildings.

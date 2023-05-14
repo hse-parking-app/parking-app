@@ -5,11 +5,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
-import java.util.*
+import java.util.Locale
 
 class DayDataState(
     currentTime: ZonedDateTime = ZonedDateTime.now(),
-    val dayDataList: SnapshotStateList<DayData> = mutableStateListOf()
+    val dayDataList: SnapshotStateList<DayData> = mutableStateListOf(),
 ) {
     init {
         var id = 0

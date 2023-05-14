@@ -24,7 +24,7 @@ enum class Token(val key: String) {
  * @param prefs The shared preferences instance for storing tokens.
  */
 class TokenManager @Inject constructor(
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
 ) {
     /**
      * Retrieves the access token from shared preferences.

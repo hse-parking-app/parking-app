@@ -1,6 +1,7 @@
 package com.hse.parkingapp.ui.buildings
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,7 +32,7 @@ import com.hse.parkingapp.model.Building
 fun BuildingsScreen(
     modifier: Modifier = Modifier,
     buildingsState: BuildingsState = BuildingsState(),
-    handleEvent: (BuildingsEvent) -> Unit = {  }
+    handleEvent: (BuildingsEvent) -> Unit = { },
 ) {
     Column(
         modifier = modifier
@@ -55,7 +56,7 @@ fun BuildingsScreen(
 
 @Composable
 fun Header(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
         modifier = modifier.padding(top = 16.dp, bottom = 8.dp),
@@ -70,10 +71,11 @@ fun BuildingsColumn(
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
     buildingsList: List<Building> = listOf(),
-    onBuildingClick: (Building) -> Unit = {  }
+    onBuildingClick: (Building) -> Unit = { },
 ) {
     LazyColumn(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState,
     ) {
         items(buildingsList) { building ->
@@ -89,22 +91,26 @@ fun BuildingsColumn(
 fun BuildingButton(
     modifier: Modifier = Modifier,
     building: Building = Building(),
-    onBuildingClick: (Building) -> Unit = {  }
+    onBuildingClick: (Building) -> Unit = { },
 ) {
     val buttonColor by animateColorAsState(
         if (building.isSelected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    val textColor by animateColorAsState(
+        if (building.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
     )
 
     Button(
         modifier = modifier
-            .padding(vertical = 4.dp)
             .fillMaxWidth(),
         onClick = { onBuildingClick(building) },
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = buttonColor,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = textColor
         )
     ) {
         Column(
@@ -122,10 +128,6 @@ fun BuildingButton(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Address",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
                     text = building.address,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -138,7 +140,7 @@ fun BuildingButton(
 fun Continue(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
-    onContinueClick: () -> Unit = {  }
+    onContinueClick: () -> Unit = { },
 ) {
     Button(
         onClick = onContinueClick,

@@ -79,9 +79,9 @@ fun TripleFAB(
     firstIcon: Painter = painterResource(id = R.drawable.building_icon_24),
     secondIcon: Painter = painterResource(id = R.drawable.car_icon_24),
     thirdIcon: Painter = painterResource(id = R.drawable.baseline_exit_to_app_24),
-    onCarClick: () -> Unit = {  },
-    onExitClick: () -> Unit = {  },
-    onBuildingClick: () -> Unit = {  },
+    onCarClick: () -> Unit = { },
+    onExitClick: () -> Unit = { },
+    onBuildingClick: () -> Unit = { },
 ) {
     // State transitions for animation
     val stateTransition: Transition<FabState> =

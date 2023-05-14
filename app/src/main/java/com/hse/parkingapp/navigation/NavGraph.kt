@@ -12,11 +12,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hse.parkingapp.ui.buildings.BuildingsScreen
 import com.hse.parkingapp.ui.main.MainScreen
-import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.ui.signin.SignInScreen
 import com.hse.parkingapp.ui.splash.SplashScreen
-import com.hse.parkingapp.ui.buildings.BuildingsScreen
+import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.utils.errors.ErrorType
 import com.hse.parkingapp.viewmodels.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -26,7 +26,7 @@ fun NavGraph(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screen.SplashScreen.route
+    startDestination: String = Screen.SplashScreen.route,
 ) {
     val context = LocalContext.current
     val currentScreen = viewModel.currentScreen.collectAsState().value.screen
@@ -36,7 +36,7 @@ fun NavGraph(
     // navigation between screens and
     // making toast messages
     LaunchedEffect(viewModel, context, currentScreen, errors) {
-        when(currentScreen) {
+        when (currentScreen) {
             is Screen.SplashScreen -> navigateTo(Screen.SplashScreen, navController)
             is Screen.BuildingsScreen -> navigateTo(Screen.BuildingsScreen, navController)
             is Screen.SignScreen -> navigateTo(Screen.SignScreen, navController)
@@ -44,20 +44,27 @@ fun NavGraph(
         }
 
         viewModel.authResults.collectLatest { result ->
-            when(result) {
+            when (result) {
                 is AuthResult.WrongTime -> showErrorToast(context, "Wrong local time")
                 is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
                     showErrorToast(context, "You're not authorized")
                     navigateTo(Screen.SignScreen, navController)
                 }
-                else -> {  }
+
+                else -> {}
             }
         }
 
-        when(errors) {
-            is ErrorType.NoCar -> { showErrorToast(context, "You don't have a car!") }
-            is ErrorType.UnknownError -> { showErrorToast(context, "Unknown error") }
-            is ErrorType.NoError -> {  }
+        when (errors) {
+            is ErrorType.NoCar -> {
+                showErrorToast(context, "You don't have a car!")
+            }
+
+            is ErrorType.UnknownError -> {
+                showErrorToast(context, "Unknown error")
+            }
+
+            is ErrorType.NoError -> {}
         }
     }
 

@@ -10,7 +10,7 @@ enum class Parking(val key: String) {
 }
 
 class ParkingManager @Inject constructor(
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
 ) {
     fun getBuildingId(): String? {
         return prefs.getString(Parking.BUILDING.key, null)

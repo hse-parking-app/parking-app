@@ -11,5 +11,5 @@ data class Spot(
     val isAvailable: Boolean = true,
     val isFree: Boolean = true,
     val canvas: Canvas = Canvas(),
-    val onCanvasCoords: OnCanvasCoords = OnCanvasCoords()
+    val onCanvasCoords: OnCanvasCoords = OnCanvasCoords(),
 )

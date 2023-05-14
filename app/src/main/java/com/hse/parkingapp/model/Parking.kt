@@ -9,5 +9,5 @@ import com.hse.parkingapp.model.level.Level
  */
 data class Parking(
     val level: Level = Level(),
-    val spots: List<Spot> = listOf()
+    val spots: List<Spot> = listOf(),
 )

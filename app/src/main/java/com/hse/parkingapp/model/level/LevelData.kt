@@ -9,5 +9,5 @@ package com.hse.parkingapp.model.level
 data class LevelData(
     val id: Int = 0,
     val level: Level = Level(),
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )

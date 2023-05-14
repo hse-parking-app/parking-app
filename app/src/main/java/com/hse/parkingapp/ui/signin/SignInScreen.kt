@@ -25,7 +25,7 @@ import com.hse.parkingapp.ui.theme.ParkingAppTheme
 fun SignInScreen(
     modifier: Modifier = Modifier,
     authenticationState: AuthenticationState = AuthenticationState(),
-    handleEvent: (event: AuthenticationEvent) -> Unit = {  }
+    handleEvent: (event: AuthenticationEvent) -> Unit = { },
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -125,11 +125,11 @@ fun InputLine(
 fun Login(
     modifier: Modifier = Modifier,
     username: String? = "",
-    onUsernameChanged: (username: String) -> Unit = {  },
+    onUsernameChanged: (username: String) -> Unit = { },
     password: String? = "",
-    onPasswordChanged: (password: String) -> Unit = {  },
-    onLogin: () -> Unit = {  },
-    isLoading: Boolean = false
+    onPasswordChanged: (password: String) -> Unit = { },
+    onLogin: () -> Unit = { },
+    isLoading: Boolean = false,
 ) {
     Column(
         modifier = modifier.padding(horizontal = 20.dp, vertical = 64.dp),
@@ -171,12 +171,16 @@ fun Login(
     }
 }
 
-@Preview(name = "Sign In light mode",
+@Preview(
+    name = "Sign In light mode",
     uiMode = Configuration.UI_MODE_NIGHT_NO,
-    showBackground = true)
-@Preview(name = "Sign In dark mode",
+    showBackground = true
+)
+@Preview(
+    name = "Sign In dark mode",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true)
+    showBackground = true
+)
 @Composable
 fun SignInScreenPreview() {
     ParkingAppTheme {
