@@ -275,7 +275,7 @@ fun DateChooser(
     val listState = rememberLazyListState()
     val monthName by remember {
         derivedStateOf {
-            dayDataState.dayDataList[listState.firstVisibleItemIndex].month
+            dayDataState.dayDataList[listState.firstVisibleItemIndex].monthStandalone
         }
     }
 

@@ -75,6 +75,6 @@ class DayDataState(
         return date.month.getDisplayName(
             TextStyle.FULL_STANDALONE,
             Locale.getDefault()
-        )
+        ).replaceFirstChar(Char::titlecase)
     }
 }
