@@ -170,9 +170,15 @@ class MainViewModel @Inject constructor(
     }
 
     private fun changeCurrentScreen(newScreen: Screen) {
-        currentScreen.value = currentScreen.value.copy(
-            screen = newScreen
-        )
+        viewModelScope.launch {
+            if (newScreen == Screen.BuildingsScreen) {
+                inflateBuildings()
+            }
+
+            currentScreen.value = currentScreen.value.copy(
+                screen = newScreen
+            )
+        }
     }
 
     fun handleSelectorEvent(selectorEvent: SelectorEvent) {
@@ -403,11 +409,6 @@ class MainViewModel @Inject constructor(
             parkingManager.saveBuildingId(
                 id = buildingsState.value.selectedBuilding?.id
             )
-
-            val levels = parkingRepository.getBuildingLevels(
-                buildingId = parkingManager.getBuildingId() ?: ""
-            ).body()
-            parkingManager.saveLevelId(levels?.get(1)?.id)
 
             inflateParking()
 
