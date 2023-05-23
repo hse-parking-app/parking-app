@@ -15,4 +15,5 @@
     <string name="choose_building">Выберите парковку</string>
     <string name="cancel_reservation">Отменить бронь</string>
     <string name="no_place_to_reserve">На сегодня нет мест для резервации</string>
+    <string name="empty_parking">Нет парковочных мест</string>
 </resources>

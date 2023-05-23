@@ -72,7 +72,14 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (employee.reservation == null) {
+        if (parking.isEmpty) {
+            TripleFAB(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                fabState = fabState,
+                onExitClick = { handleEvent(SelectorEvent.Exit) },
+                onBuildingClick = { handleEvent(SelectorEvent.SelectBuilding) }
+            )
+        } else if (employee.reservation == null) {
             DateChooser(
                 modifier = Modifier,
                 dayDataState = dayDataState,
@@ -86,14 +93,16 @@ fun MainScreen(
                     fabState.value = FabState.COLLAPSED
                 }
             )
-            LevelPicker(
-                modifier = Modifier.align(Alignment.CenterStart),
-                levelsList = levelDataState.levelDataList,
-                onLevelClick = { level ->
-                    handleEvent(SelectorEvent.LevelChanged(level))
-                    fabState.value = FabState.COLLAPSED
-                }
-            )
+            if (levelDataState.levelDataList.size > 1) {
+                LevelPicker(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    levelsList = levelDataState.levelDataList,
+                    onLevelClick = { level ->
+                        handleEvent(SelectorEvent.LevelChanged(level))
+                        fabState.value = FabState.COLLAPSED
+                    }
+                )
+            }
             TripleFAB(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 fabState = fabState,
@@ -107,18 +116,26 @@ fun MainScreen(
                 onCancelClick = { handleEvent(SelectorEvent.CancelReservation) }
             )
         }
-        SpotCanvas(
-            parking = parking,
-            onSpotClick = { spot ->
-                handleEvent(SelectorEvent.SpotChanged(spot))
-                if (spot.isFree) {
-                    scope.launch { bottomSheetState.show() }
-                }
-            },
-            employee = employee,
-            reservation = reservation,
-            fabState = fabState
-        )
+        if (parking.isEmpty) {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = stringResource(id = R.string.empty_parking),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        } else {
+            SpotCanvas(
+                parking = parking,
+                onSpotClick = { spot ->
+                    handleEvent(SelectorEvent.SpotChanged(spot))
+                    if (spot.isFree) {
+                        scope.launch { bottomSheetState.show() }
+                    }
+                },
+                employee = employee,
+                reservation = reservation,
+                fabState = fabState
+            )
+        }
     }
     if (employee.cars.isNotEmpty()) {
         BottomSheet(

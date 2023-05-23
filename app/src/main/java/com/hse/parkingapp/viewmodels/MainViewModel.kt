@@ -243,18 +243,29 @@ class MainViewModel @Inject constructor(
         val buildingLevels = parkingRepository.getBuildingLevels(
             buildingId = parkingManager.getBuildingId() ?: ""
         ).body()
-        val selectedLevelId = parkingManager.getLevelId()
 
-        levelsList.value = LevelDataState(
-            levels = buildingLevels ?: listOf(),
-            selectedLevelId = selectedLevelId ?: ""
-        )
-        parkingManager.saveLevelId(levelsList.value.selectedLevelId)
+        if (buildingLevels.isNullOrEmpty()) {
+            levelsList.value = LevelDataState()  // pass LevelDataState with empty levels list
+            parking.value = parking.value.copy(isEmpty = true)
+        } else {
+            if (parkingManager.getLevelId() !in buildingLevels.map { it.id }
+                || parkingManager.getLevelId() == null
+            ) {
+                parkingManager.saveLevelId(buildingLevels.first().id)
+            }
 
-        val selectedLevel = parkingRepository.getLevel(
-            levelId = parkingManager.getLevelId() ?: ""
-        ).body()
-        parking.value = parking.value.copy(level = selectedLevel ?: Level())
+            levelsList.value = LevelDataState(
+                levels = buildingLevels,
+                selectedLevelId = parkingManager.getLevelId() ?: ""
+            )
+
+            val selectedLevel = buildingLevels.find { it.id == parkingManager.getLevelId() }
+
+            parking.value = parking.value.copy(
+                level = selectedLevel ?: Level(),
+                isEmpty = false
+            )
+        }
     }
 
     private fun cancelReservation() {
@@ -310,7 +321,9 @@ class MainViewModel @Inject constructor(
             parking.value = parking.value.copy(spots = listOf())
 
             val spots =
-                if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
+                if (parking.value.isEmpty) {
+                    listOf()
+                } else if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
                     val rawSpots = parkingRepository.getAllSpotsOnLevel(
                         levelId = parkingManager.getLevelId() ?: ""
                     ).body()
@@ -330,7 +343,8 @@ class MainViewModel @Inject constructor(
                 }
 
             parking.value = parking.value.copy(
-                spots = spots
+                spots = spots,
+                isEmpty = spots.isEmpty()
             )
 
             parking.value = parking.value.copy(isLoading = false)
@@ -447,5 +461,7 @@ class MainViewModel @Inject constructor(
         buildingsState.value = buildingsState.value.copy(
             selectedBuilding = building
         )
+
+        parkingManager.saveBuildingId(building.id)
     }
 }
