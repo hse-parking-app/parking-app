@@ -121,7 +121,7 @@ class MainViewModel @Inject constructor(
                 updateEmployeeAndReservation(result.employee)
                 inflateBuildings()
 
-                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
+                navigateTo(screen = Screen.BuildingsScreen)
             }
             resultChannel.send(result)
 
@@ -136,12 +136,12 @@ class MainViewModel @Inject constructor(
 
             if (result::class == AuthResult.Authorized::class) {
                 inflateBuildings()
-                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
+                navigateTo(screen = Screen.BuildingsScreen)
             } else if (result::class == AuthResult.Prepared::class) {
                 inflateParking()
-                changeCurrentScreen(newScreen = Screen.MainScreen)
+                navigateTo(screen = Screen.MainScreen)
             } else {
-                changeCurrentScreen(newScreen = Screen.SignScreen)
+                navigateTo(screen = Screen.SignScreen)
             }
 
             resultChannel.send(result)
@@ -169,14 +169,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun changeCurrentScreen(newScreen: Screen) {
+    private fun navigateTo(screen: Screen) {
         viewModelScope.launch {
-            if (newScreen == Screen.BuildingsScreen) {
+            if (screen == Screen.BuildingsScreen) {
                 inflateBuildings()
             }
 
             currentScreen.value = currentScreen.value.copy(
-                screen = newScreen
+                screen = screen
             )
         }
     }
@@ -212,7 +212,7 @@ class MainViewModel @Inject constructor(
             }
 
             is SelectorEvent.SelectBuilding -> {
-                changeCurrentScreen(newScreen = Screen.BuildingsScreen)
+                navigateTo(screen = Screen.BuildingsScreen)
             }
         }
     }
@@ -221,7 +221,7 @@ class MainViewModel @Inject constructor(
         tokenManager.deleteAccessToken()
         tokenManager.deleteRefreshToken()
 
-        changeCurrentScreen(newScreen = Screen.SignScreen)
+        navigateTo(screen = Screen.SignScreen)
     }
 
     private fun updateLevel(level: LevelData) {
@@ -412,7 +412,7 @@ class MainViewModel @Inject constructor(
 
             inflateParking()
 
-            changeCurrentScreen(newScreen = Screen.MainScreen)
+            navigateTo(screen = Screen.MainScreen)
             resultChannel.send(authRepository.authenticate())
 
             buildingsState.value = buildingsState.value.copy(isLoading = false)
