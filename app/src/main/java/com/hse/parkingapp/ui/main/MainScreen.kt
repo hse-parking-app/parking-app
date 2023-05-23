@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hse.parkingapp.R
-import com.hse.parkingapp.model.Canvas
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
@@ -109,8 +108,7 @@ fun MainScreen(
             )
         }
         SpotCanvas(
-            canvas = parking.level.canvas,
-            spots = parking.spots,
+            parking = parking,
             onSpotClick = { spot ->
                 handleEvent(SelectorEvent.SpotChanged(spot))
                 if (spot.isFree) {
@@ -358,7 +356,7 @@ fun TimesRow(
     } else {
         LazyRow(
             state = listState,
-            contentPadding = PaddingValues(top = 20.dp, start = 16.dp, end = 16.dp), // top = 20.dp, bottom = 32.dp,
+            contentPadding = PaddingValues(top = 20.dp, start = 16.dp, end = 16.dp),
         ) {
             items(timesList) { time ->
                 TimeButton(
@@ -372,8 +370,7 @@ fun TimesRow(
 
 @Composable
 fun SpotCanvas(
-    canvas: Canvas = Canvas(0, 0),
-    spots: List<Spot> = emptyList(),
+    parking: Parking = Parking(),
     onSpotClick: (spot: Spot) -> Unit = { },
     employee: Employee = Employee(),
     reservation: Reservation = Reservation(),
@@ -384,8 +381,14 @@ fun SpotCanvas(
     val scale = remember { Animatable(0.5f) }
     val scope = rememberCoroutineScope()
 
+    val alpha by animateFloatAsState(
+        targetValue = if (parking.isLoading) 0f else 1f,
+        animationSpec = FloatTweenSpec(duration = 250, easing = LinearOutSlowInEasing)
+    )
+
     Box(
         modifier = Modifier
+            .alpha(alpha)
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoom, _ ->
@@ -393,12 +396,12 @@ fun SpotCanvas(
                         scale.snapTo((scale.value * zoom).coerceIn(0.5f, 2f))
 
                         offsetX = (offsetX + pan.x).coerceIn(
-                            -canvas.width.toFloat() * scale.value,
-                            canvas.width.toFloat() * scale.value
+                            -parking.level.canvas.width.toFloat() * scale.value,
+                            parking.level.canvas.width.toFloat() * scale.value
                         )
                         offsetY = (offsetY + pan.y).coerceIn(
-                            -canvas.height.toFloat() * scale.value,
-                            canvas.height.toFloat() * scale.value
+                            -parking.level.canvas.height.toFloat() * scale.value,
+                            parking.level.canvas.height.toFloat() * scale.value
                         )
 
                         if (fabState.value == FabState.EXPANDED) {
@@ -410,7 +413,10 @@ fun SpotCanvas(
     ) {
         Box(
             Modifier
-                .requiredSize(width = canvas.width.dp, height = canvas.height.dp)
+                .requiredSize(
+                    width = parking.level.canvas.width.dp,
+                    height = parking.level.canvas.height.dp
+                )
                 .align(Alignment.Center)
                 .offset {
                     IntOffset(
@@ -423,7 +429,7 @@ fun SpotCanvas(
                     scaleY = scale.value
                 )
         ) {
-            spots.forEach { spot ->
+            parking.spots.forEach { spot ->
                 SpotButton(
                     offsetX = spot.onCanvasCoords.x,
                     offsetY = spot.onCanvasCoords.y,

@@ -32,6 +32,7 @@ import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -151,7 +152,10 @@ class MainViewModel @Inject constructor(
         daysList.value = DayDataState(
             currentTime = authRepository.getCurrentTime() ?: ZonedDateTime.now()
         )
-        updateDay(daysList.value.dayDataList.first())
+
+        val firstDay = daysList.value.dayDataList.first()
+        selectorState.value = selectorState.value.copy(selectedDay = firstDay)
+        daysList.value.onItemSelected(firstDay)
     }
 
     private fun inflateTimesRow() {
@@ -159,9 +163,10 @@ class MainViewModel @Inject constructor(
             currentTime = selectorState.value.selectedDay.date
         )
         if (!timesList.value.timeDataList.isEmpty()) {
-            updateTime(timesList.value.timeDataList.first())
+            val firstTime = timesList.value.timeDataList.first()
+            selectorState.value = selectorState.value.copy(selectedTime = firstTime)
+            timesList.value.onItemSelected(firstTime)
         }
-        getSpotsList()
     }
 
     private fun changeCurrentScreen(newScreen: Screen) {
@@ -221,16 +226,29 @@ class MainViewModel @Inject constructor(
             )
 
             parkingManager.saveLevelId(level.level.id)
-            inflateParking()
+
+            inflateDaysRow()
+            inflateTimesRow()
+            inflateSpotsList()
         }
     }
 
-    private fun inflateLevels(levels: List<Level>, selectedLevelId: String? = null) {
+    private suspend fun inflateLevels() {
+        val buildingLevels = parkingRepository.getBuildingLevels(
+            buildingId = parkingManager.getBuildingId() ?: ""
+        ).body()
+        val selectedLevelId = parkingManager.getLevelId()
+
         levelsList.value = LevelDataState(
-            levels = levels,
-            selectedLevelId = selectedLevelId ?: levels.first().id
+            levels = buildingLevels ?: listOf(),
+            selectedLevelId = selectedLevelId ?: ""
         )
         parkingManager.saveLevelId(levelsList.value.selectedLevelId)
+
+        val selectedLevel = parkingRepository.getLevel(
+            levelId = parkingManager.getLevelId() ?: ""
+        ).body()
+        parking.value = parking.value.copy(level = selectedLevel ?: Level())
     }
 
     private fun cancelReservation() {
@@ -264,8 +282,6 @@ class MainViewModel @Inject constructor(
                 errors.value = errors.value.copy(error = ErrorType.UnknownError)
             }
 
-            updateTime(selectorState.value.selectedTime)
-
             employee.value = employee.value.copy(isLoading = false)
 
             authenticate()
@@ -277,11 +293,16 @@ class MainViewModel @Inject constructor(
             selectedTime = time
         )
         timesList.value.onItemSelected(time)
-        getSpotsList()
+
+        inflateSpotsList()
     }
 
-    private fun getSpotsList() {
+    private fun inflateSpotsList() {
         viewModelScope.launch {
+            parking.value = parking.value.copy(isLoading = true)
+            delay(250)
+            parking.value = parking.value.copy(spots = listOf())
+
             val spots =
                 if (employee.value.reservation != null || timesList.value.timeDataList.isEmpty()) {
                     val rawSpots = parkingRepository.getAllSpotsOnLevel(
@@ -305,6 +326,8 @@ class MainViewModel @Inject constructor(
             parking.value = parking.value.copy(
                 spots = spots
             )
+
+            parking.value = parking.value.copy(isLoading = false)
         }
     }
 
@@ -329,6 +352,7 @@ class MainViewModel @Inject constructor(
         daysList.value.onItemSelected(day)
 
         inflateTimesRow()
+        inflateSpotsList()
     }
 
     private suspend fun updateEmployeeAndReservation(newEmployee: Employee?) {
@@ -411,24 +435,10 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun inflateParking() {
+        inflateLevels()
         inflateDaysRow()
-
-        val levels = parkingRepository.getBuildingLevels(
-            buildingId = parkingManager.getBuildingId() ?: ""
-        ).body()
-
-        inflateLevels(
-            levels = levels ?: listOf(),
-            selectedLevelId = parkingManager.getLevelId()
-        )
-
-        val level = parkingRepository.getLevel(
-            levelId = parkingManager.getLevelId() ?: ""
-        ).body()
-
-        parking.value = parking.value.copy(
-            level = level ?: Level()
-        )
+        inflateTimesRow()
+        inflateSpotsList()
     }
 
     private fun onBuildingClick(building: Building) {
