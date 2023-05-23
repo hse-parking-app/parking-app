@@ -280,7 +280,6 @@ fun DateChooser(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(225.dp)
             .zIndex(1f),
         shadowElevation = 8.dp
     ) {
@@ -356,7 +355,7 @@ fun TimesRow(
     } else {
         LazyRow(
             state = listState,
-            contentPadding = PaddingValues(top = 20.dp, start = 16.dp, end = 16.dp),
+            contentPadding = PaddingValues(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 32.dp)
         ) {
             items(timesList) { time ->
                 TimeButton(
