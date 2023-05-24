@@ -59,7 +59,7 @@ fun Header(
     modifier: Modifier = Modifier,
 ) {
     Text(
-        modifier = modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = modifier.padding(top = 16.dp, bottom = 24.dp),
         text = stringResource(id = R.string.choose_building),
         style = MaterialTheme.typography.headlineMedium,
         color = MaterialTheme.colorScheme.onBackground
