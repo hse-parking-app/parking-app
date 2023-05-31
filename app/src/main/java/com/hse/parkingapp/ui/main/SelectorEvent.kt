@@ -1,6 +1,7 @@
 package com.hse.parkingapp.ui.main
 
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.car.Car
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.level.LevelData
 import com.hse.parkingapp.model.time.TimeData
@@ -51,5 +52,23 @@ sealed class SelectorEvent {
     /**
      * Event indicating a comeback to buildings selection screen
      */
-    object SelectBuilding : SelectorEvent()
+    object OpenBuildings : SelectorEvent()
+
+    /**
+     * Event indicating an event to launch car selection menu
+     */
+    object OpenCars : SelectorEvent()
+
+    /**
+     * Event indicating a comeback to buildings selection screen
+     */
+    class SelectCar(val car: Car) : SelectorEvent()
+
+    /**
+     * Event indicating a process of car addition
+     */
+    class AddCar(
+        val model: String,
+        val registryNumber: String
+    ) : SelectorEvent()
 }

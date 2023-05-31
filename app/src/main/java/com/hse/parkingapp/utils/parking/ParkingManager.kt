@@ -6,7 +6,8 @@ import javax.inject.Inject
 enum class Parking(val key: String) {
     BUILDING(key = "building_id"),
     LEVEL(key = "level_id"),
-    HOURS(key = "hours")
+    HOURS(key = "hours"),
+    CAR(key = "car")
 }
 
 class ParkingManager @Inject constructor(
@@ -46,5 +47,21 @@ class ParkingManager @Inject constructor(
                 .putLong(Parking.HOURS.key, it)
                 .apply()
         }
+    }
+
+    fun getCarId(): String? {
+        return prefs.getString(Parking.CAR.key, null)
+    }
+
+    fun saveCarId(id: String?) {
+        id?.let {
+            prefs.edit()
+                .putString(Parking.CAR.key, it)
+                .apply()
+        }
+    }
+
+    fun deleteCarId() {
+        prefs.edit().remove(Parking.CAR.key).apply()
     }
 }

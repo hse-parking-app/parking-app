@@ -118,7 +118,7 @@ class ModalBottomSheetState(
      */
     suspend fun show() {
         val targetValue =
-            if (isHalfExpandedEnabled) ModalBottomSheetValue.HalfExpanded
+            if (isHalfExpandedEnabled) ModalBottomSheetValue.Expanded
             else ModalBottomSheetValue.Expanded
         animateTo(targetValue = targetValue)
     }

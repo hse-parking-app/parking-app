@@ -78,7 +78,7 @@ fun NavGraph(
         }
         composable(route = Screen.BuildingsScreen.route) {
             BuildingsScreen(
-                buildingsState = viewModel.buildingsState.collectAsState().value,
+                buildingsState = viewModel.buildingsList.collectAsState().value,
                 handleEvent = viewModel::handleBuildingsEvent
             )
         }
@@ -97,7 +97,8 @@ fun NavGraph(
                 timeDataState = viewModel.timesList.collectAsState().value,
                 employee = viewModel.employee.collectAsState().value,
                 reservation = viewModel.reservation.collectAsState().value,
-                levelDataState = viewModel.levelsList.collectAsState().value
+                levelDataState = viewModel.levelsList.collectAsState().value,
+                carsState = viewModel.carsList.collectAsState().value
             )
         }
     }

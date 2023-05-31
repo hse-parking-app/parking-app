@@ -8,6 +8,8 @@ import com.hse.parkingapp.model.Building
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.car.Car
+import com.hse.parkingapp.model.car.CarsState
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.level.Level
@@ -62,6 +64,8 @@ class MainViewModel @Inject constructor(
     val daysList = MutableStateFlow(DayDataState())
     val timesList = MutableStateFlow(TimeDataState())
     val levelsList = MutableStateFlow(LevelDataState())
+    val carsList = MutableStateFlow(CarsState())
+    val buildingsList = MutableStateFlow(BuildingsState())
 
     val authenticationState = MutableStateFlow(AuthenticationState())
     val selectorState = MutableStateFlow(
@@ -69,8 +73,6 @@ class MainViewModel @Inject constructor(
             selectedDay = daysList.value.dayDataList.first()
         )
     )
-
-    val buildingsState = MutableStateFlow(BuildingsState())
 
     init {
         authenticate()
@@ -135,12 +137,14 @@ class MainViewModel @Inject constructor(
             updateEmployeeAndReservation(result.employee)
 
             if (result::class == AuthResult.Authorized::class) {
+                parkingManager.deleteCarId()
                 inflateBuildings()
                 navigateTo(screen = Screen.BuildingsScreen)
             } else if (result::class == AuthResult.Prepared::class) {
                 inflateParking()
                 navigateTo(screen = Screen.MainScreen)
             } else {
+                parkingManager.deleteCarId()
                 navigateTo(screen = Screen.SignScreen)
             }
 
@@ -211,15 +215,58 @@ class MainViewModel @Inject constructor(
                 exit()
             }
 
-            is SelectorEvent.SelectBuilding -> {
+            is SelectorEvent.OpenBuildings -> {
                 navigateTo(screen = Screen.BuildingsScreen)
             }
+
+            is SelectorEvent.OpenCars -> {
+                refreshCarsList()
+            }
+
+            is SelectorEvent.SelectCar -> {
+                updateCar(selectorEvent.car)
+            }
+
+            is SelectorEvent.AddCar -> {
+                addNewCar(selectorEvent.model, selectorEvent.registryNumber)
+            }
         }
+    }
+
+    private fun refreshCarsList() {
+        viewModelScope.launch {
+            updateEmployeeAndReservation(employee.value)
+        }
+    }
+
+    private fun addNewCar(model: String, registryNumber: String) {
+        viewModelScope.launch {
+            employee.value = employee.value.copy(isLoading = true)
+
+            val response = authRepository.addCar(
+                Car(
+                    model = model,
+                    registryNumber = registryNumber
+                )
+            )
+            updateEmployeeAndReservation(employee.value)
+            updateCar(response.body() ?: Car())
+
+            employee.value = employee.value.copy(isLoading = false)
+        }
+    }
+
+    private fun updateCar(car: Car) {
+        carsList.value.onItemSelected(car)
+        parkingManager.saveCarId(car.id)
+        employee.value = employee.value.copy(selectedCar = car)
     }
 
     private fun exit() {
         tokenManager.deleteAccessToken()
         tokenManager.deleteRefreshToken()
+
+        parkingManager.deleteCarId()
 
         navigateTo(screen = Screen.SignScreen)
     }
@@ -285,7 +332,7 @@ class MainViewModel @Inject constructor(
             employee.value = employee.value.copy(isLoading = true)
 
             val reservationRequest = ReservationRequest(
-                carId = employee.value.cars.first().id,
+                carId = employee.value.selectedCar?.id ?: "",
                 parkingSpotId = selectorState.value.selectedSpot?.id ?: "",
                 startTime = prepareTimeForServer(selectorState.value.selectedTime.startTime),
                 endTime = prepareTimeForServer(selectorState.value.selectedTime.endTime)
@@ -356,7 +403,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun updateSpot(spot: Spot) {
-        if (employee.value.cars.isEmpty()) {
+        if (employee.value.selectedCar == null) {
             errors.value = errors.value.copy(error = ErrorType.NoCar)
         }
 
@@ -376,12 +423,12 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun updateEmployeeAndReservation(newEmployee: Employee?) {
-        employee.value = employee.value.copy(
-            id = newEmployee?.id ?: "",
-            name = newEmployee?.name ?: "Egor",
-            email = newEmployee?.email ?: "egor@egor.egor",
-            cars = newEmployee?.cars ?: mutableListOf(),
-            reservation = newEmployee?.reservation
+        employee.value = newEmployee ?: Employee()
+
+        carsList.value.inflateCarsList(
+            authRepository.getEmployeeCars().map {
+                it.copy(isSelected = it.id == parkingManager.getCarId())
+            }
         )
 
         if (employee.value.reservation != null) {
@@ -418,10 +465,10 @@ class MainViewModel @Inject constructor(
 
     private fun onContinueClick() {
         viewModelScope.launch {
-            buildingsState.value = buildingsState.value.copy(isLoading = true)
+            buildingsList.value = buildingsList.value.copy(isLoading = true)
 
             parkingManager.saveBuildingId(
-                id = buildingsState.value.selectedBuilding?.id
+                id = buildingsList.value.selectedBuilding?.id
             )
 
             inflateParking()
@@ -429,7 +476,7 @@ class MainViewModel @Inject constructor(
             navigateTo(screen = Screen.MainScreen)
             resultChannel.send(authRepository.authenticate())
 
-            buildingsState.value = buildingsState.value.copy(isLoading = false)
+            buildingsList.value = buildingsList.value.copy(isLoading = false)
         }
     }
 
@@ -437,12 +484,12 @@ class MainViewModel @Inject constructor(
         val response = parkingRepository.getBuildings()
 
         if (response.isSuccessful) {
-            buildingsState.value.inflateBuildingList(response.body() ?: listOf())
+            buildingsList.value.inflateBuildingList(response.body() ?: listOf())
 
             if (!response.body().isNullOrEmpty()) {
-                val firstBuilding = buildingsState.value.buildingList.first()
+                val firstBuilding = buildingsList.value.buildingList.first()
 
-                buildingsState.value = buildingsState.value.copy(
+                buildingsList.value = buildingsList.value.copy(
                     selectedBuilding = firstBuilding
                 )
             }
@@ -457,8 +504,8 @@ class MainViewModel @Inject constructor(
     }
 
     private fun onBuildingClick(building: Building) {
-        buildingsState.value.onItemSelected(building)
-        buildingsState.value = buildingsState.value.copy(
+        buildingsList.value.onItemSelected(building)
+        buildingsList.value = buildingsList.value.copy(
             selectedBuilding = building
         )
 

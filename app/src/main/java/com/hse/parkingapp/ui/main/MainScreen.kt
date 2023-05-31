@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,8 @@ import com.hse.parkingapp.R
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.Parking
 import com.hse.parkingapp.model.Spot
+import com.hse.parkingapp.model.car.Car
+import com.hse.parkingapp.model.car.CarsState
 import com.hse.parkingapp.model.day.DayData
 import com.hse.parkingapp.model.day.DayDataState
 import com.hse.parkingapp.model.level.LevelData
@@ -62,12 +66,20 @@ fun MainScreen(
     dayDataState: DayDataState = DayDataState(),
     timeDataState: TimeDataState = TimeDataState(),
     levelDataState: LevelDataState = LevelDataState(),
+    carsState: CarsState = CarsState(),
     employee: Employee = Employee(),
     reservation: Reservation = Reservation(),
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(
+    val bookingSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     )
+    val carSelectionSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    )
+    val carAdditionSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    )
+
     val fabState = remember { mutableStateOf(FabState.COLLAPSED) }
     val scope = rememberCoroutineScope()
 
@@ -77,7 +89,11 @@ fun MainScreen(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 fabState = fabState,
                 onExitClick = { handleEvent(SelectorEvent.Exit) },
-                onBuildingClick = { handleEvent(SelectorEvent.SelectBuilding) }
+                onBuildingClick = { handleEvent(SelectorEvent.OpenBuildings) },
+                onCarClick = {
+                    fabState.value = FabState.COLLAPSED
+                    scope.launch { carSelectionSheetState.show() }
+                }
             )
         } else if (employee.reservation == null) {
             DateChooser(
@@ -107,7 +123,14 @@ fun MainScreen(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 fabState = fabState,
                 onExitClick = { handleEvent(SelectorEvent.Exit) },
-                onBuildingClick = { handleEvent(SelectorEvent.SelectBuilding) }
+                onBuildingClick = { handleEvent(SelectorEvent.OpenBuildings) },
+                onCarClick = {
+                    fabState.value = FabState.COLLAPSED
+                    scope.launch {
+                        handleEvent(SelectorEvent.OpenCars)
+                        carSelectionSheetState.show()
+                    }
+                }
             )
         } else {
             ReservationInfo(
@@ -128,7 +151,7 @@ fun MainScreen(
                 onSpotClick = { spot ->
                     handleEvent(SelectorEvent.SpotChanged(spot))
                     if (spot.isFree) {
-                        scope.launch { bottomSheetState.show() }
+                        scope.launch { bookingSheetState.show() }
                     }
                 },
                 employee = employee,
@@ -137,24 +160,44 @@ fun MainScreen(
             )
         }
     }
-    if (employee.cars.isNotEmpty()) {
-        BottomSheet(
-            bottomSheetState = bottomSheetState,
+    if (employee.selectedCar != null) {
+        BookingSheet(
+            bottomSheetState = bookingSheetState,
             selectorState = selectorState,
             onBookClick = {
                 scope.launch {
                     handleEvent(SelectorEvent.SpotBooked)
-                    bottomSheetState.hide()
+                    bookingSheetState.hide()
                 }
             },
             employee = employee
         )
     }
+
+    CarSelectionSheet(
+        selectionSheetState = carSelectionSheetState,
+        additionSheetState = carAdditionSheetState,
+        carsState = carsState,
+        onCarClick = { car ->
+            scope.launch { handleEvent(SelectorEvent.SelectCar(car)) }
+        }
+    )
+
+    CarAdditionSheet(
+        bottomSheetState = carAdditionSheetState,
+        onAddClick = { model, registryNumber ->
+            scope.launch {
+                handleEvent(SelectorEvent.AddCar(model, registryNumber))
+                carAdditionSheetState.hide()
+            }
+        },
+        employee = employee
+    )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun BottomSheet(
+fun BookingSheet(
     modifier: Modifier = Modifier,
     bottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
@@ -169,7 +212,7 @@ fun BottomSheet(
         sheetContent = {
             Column(
                 modifier = modifier
-                    .padding(top = 24.dp, bottom = 40.dp, start = 20.dp, end = 20.dp)
+                    .padding(top = 24.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.booking),
@@ -181,7 +224,7 @@ fun BottomSheet(
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
-                    BottomSheetFeature(
+                    BookingSheetFeature(
                         feature = R.string.place,
                         content = {
                             Text(
@@ -192,7 +235,7 @@ fun BottomSheet(
                         }
                     )
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
-                    BottomSheetFeature(
+                    BookingSheetFeature(
                         feature = R.string.time_and_date,
                         content = {
                             Column(
@@ -212,19 +255,19 @@ fun BottomSheet(
                         }
                     )
                     Divider(color = Color(0x0C9299A2), thickness = 1.dp)
-                    BottomSheetFeature(
+                    BookingSheetFeature(
                         feature = R.string.car,
                         content = {
                             Column(
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = employee.cars.first().registryNumber,
+                                    text = employee.selectedCar?.registryNumber ?: "",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = employee.cars.first().model,
+                                    text = employee.selectedCar?.model ?: "",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -259,7 +302,269 @@ fun BottomSheet(
 }
 
 @Composable
-fun BottomSheetFeature(
+@OptIn(ExperimentalMaterial3Api::class)
+fun CarSelectionSheet(
+    modifier: Modifier = Modifier,
+    selectionSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    ),
+    additionSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    ),
+    carsState: CarsState = CarsState(),
+    onCarClick: (Car) -> Unit = { },
+) {
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheetLayout(
+        modifier = modifier,
+        sheetState = selectionSheetState,
+        sheetContent = {
+            Column(
+                modifier = modifier
+                    .padding(top = 24.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    text = stringResource(id = R.string.cars),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                if (carsState.carsList.isEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.no_cars_available),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(carsState.carsList) {car ->
+                            CarCard(
+                                car = car,
+                                onCarClick = onCarClick
+                            )
+                        }
+                    }
+                }
+                Button(
+                    modifier = Modifier
+                        .padding(top = 24.dp)
+                        .height(56.dp)
+                        .fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    onClick = { scope.launch { additionSheetState.show() } },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.add),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    ) { }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun CarAdditionSheet(
+    modifier: Modifier = Modifier,
+    bottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden
+    ),
+    onAddClick: (String, String) -> Unit = { _, _ ->  },
+    employee: Employee = Employee()
+) {
+    var model by remember { mutableStateOf("") }
+    var registryNumber by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
+
+    val isValidNumber: (String) -> Boolean = {
+        it.matches(Regex("[А-Я][0-9]{3}[А-Я]{2}[0-9]{2,3}"))
+    }
+
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheetLayout(
+        modifier = modifier,
+        sheetState = bottomSheetState,
+        sheetContent = {
+            Column(
+                modifier = modifier
+                    .padding(top = 24.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    text = stringResource(id = R.string.new_car),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Column(
+                    modifier = modifier.padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    InputLine(
+                        value = model,
+                        onValueChanged = { model = it },
+                        placeholder = stringResource(id = R.string.model)
+                    )
+                    InputLine(
+                        value = registryNumber,
+                        onValueChanged = {
+                            isError = false
+                            registryNumber = it
+                        },
+                        placeholder = stringResource(id = R.string.registry_number),
+                        isError = isError,
+                        supportingText = stringResource(id = R.string.invalid_number),
+                        isLastField = true
+                    )
+                }
+                Button(
+                    onClick = {
+                        if (isValidNumber(registryNumber)) {
+                            scope.launch {
+                                onAddClick(model, registryNumber)
+
+                                delay(500)
+                                model = ""
+                                registryNumber = ""
+                            }
+                        } else {
+                            isError = true
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    if (employee.isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.then(Modifier.size(32.dp))
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.add),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
+    ) { }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InputLine(
+    value: String = "",
+    onValueChanged: (String) -> Unit = { },
+    placeholder: String = "",
+    supportingText: String = "",
+    isError: Boolean = false,
+    isLastField: Boolean = false
+) {
+    TextField(
+        value = value,
+        onValueChange = { onValueChanged(it) },
+        isError = isError,
+        placeholder = {
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = TextFieldDefaults.textFieldColors(
+            disabledLabelColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        shape = MaterialTheme.shapes.medium,
+        singleLine = true,
+        keyboardOptions = if (!isLastField) {
+            KeyboardOptions(imeAction = ImeAction.Next)
+        } else {
+            KeyboardOptions.Default
+        },
+        supportingText = {
+            if (isError) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = supportingText,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+    )
+}
+
+@Composable
+fun CarCard(
+    modifier: Modifier = Modifier,
+    car: Car = Car(),
+    onCarClick: (Car) -> Unit = { }
+) {
+    val buttonColor by animateColorAsState(
+        if (car.isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    val textColor by animateColorAsState(
+        if (car.isSelected && isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    )
+
+    Button(
+        modifier = modifier
+            .fillMaxWidth(),
+        onClick = { onCarClick(car) },
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = buttonColor,
+            contentColor = textColor
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = car.model,
+                style = MaterialTheme.typography.displayMedium
+            )
+            Text(
+                text = car.registryNumber,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Composable
+fun BookingSheetFeature(
     @StringRes feature: Int = R.string.place,
     content: @Composable () -> Unit = { },
 ) {

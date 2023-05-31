@@ -16,4 +16,11 @@
     <string name="cancel_reservation">Отменить бронь</string>
     <string name="no_place_to_reserve">На сегодня нет мест для резервации</string>
     <string name="empty_parking">Нет парковочных мест</string>
+    <string name="cars">Автомобили</string>
+    <string name="no_cars_available">Ваш автопарк пуст</string>
+    <string name="add">Добавить</string>
+    <string name="new_car">Новый автомобиль</string>
+    <string name="model">Модель</string>
+    <string name="registry_number">Номер</string>
+    <string name="invalid_number">Невалидный номер</string>
 </resources>
