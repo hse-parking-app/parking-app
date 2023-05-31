@@ -404,7 +404,11 @@ class MainViewModel @Inject constructor(
 
     private fun updateSpot(spot: Spot) {
         if (employee.value.selectedCar == null) {
-            errors.value = errors.value.copy(error = ErrorType.NoCar)
+            viewModelScope.launch {
+                errors.value = errors.value.copy(error = ErrorType.NoCar)
+                delay(10)
+                errors.value = errors.value.copy(error = ErrorType.NoError)
+            }
         }
 
         selectorState.value = selectorState.value.copy(

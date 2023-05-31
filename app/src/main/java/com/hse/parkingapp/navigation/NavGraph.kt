@@ -35,7 +35,7 @@ fun NavGraph(
     // Block of code which is responsible for
     // navigation between screens and
     // making toast messages
-    LaunchedEffect(viewModel, context, currentScreen, errors) {
+    LaunchedEffect(viewModel, context, currentScreen) {
         when (currentScreen) {
             is Screen.SplashScreen -> navigateTo(Screen.SplashScreen, navController)
             is Screen.BuildingsScreen -> navigateTo(Screen.BuildingsScreen, navController)
@@ -54,7 +54,9 @@ fun NavGraph(
                 else -> {}
             }
         }
+    }
 
+    LaunchedEffect(errors) {
         when (errors) {
             is ErrorType.NoCar -> {
                 showErrorToast(context, "You don't have a car!")
