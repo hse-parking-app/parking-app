@@ -7,5 +7,5 @@ object NetworkConstants {
     /**
      * Base URL for the network requests.
      */
-    const val BASE_URL = "http://10.0.2.2:8080/"
+    const val BASE_URL = "http://91.185.85.37:8080/"
 }

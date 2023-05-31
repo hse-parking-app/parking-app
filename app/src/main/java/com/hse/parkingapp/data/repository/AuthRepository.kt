@@ -2,13 +2,14 @@ package com.hse.parkingapp.data.repository
 
 import com.auth0.android.jwt.JWT
 import com.hse.parkingapp.data.network.AuthApi
-import com.hse.parkingapp.model.Car
+import com.hse.parkingapp.model.car.Car
 import com.hse.parkingapp.model.Employee
 import com.hse.parkingapp.model.reservation.ReservationResult
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.AuthResult
 import com.hse.parkingapp.utils.parking.ParkingManager
 import com.hse.parkingapp.utils.token.TokenManager
+import retrofit2.Response
 import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -33,18 +34,18 @@ class AuthRepository(
      */
     suspend fun getCurrentTime(): ZonedDateTime? {
         val response = authApi.getCurrentTime()
-        val localTime = ZonedDateTime.now()
 
         return if (response.isSuccessful) {
             val serverTime = ZonedDateTime.parse(response.body()?.time ?: "")
+            val localTime = ZonedDateTime.now()
             val difference = differenceInHours(localTime, serverTime)
 
             // If time is incorrect...
             if (difference !in -12..12) {
                 return null
+            } else {
+                parkingManager.saveHoursDifference(localTime.offset.totalSeconds / 3600L)
             }
-
-            parkingManager.saveHoursDifference(difference)
 
             localTime
         } else {
@@ -113,16 +114,20 @@ class AuthRepository(
         val employeeCars = getEmployeeCars()
         val employeeReservation = getEmployeeReservation()
 
+        if (parkingManager.getCarId() == null && employeeCars.isNotEmpty()) {
+            parkingManager.saveCarId(employeeCars.first().id)
+        }
+
         return Employee(
             id = jwt.getClaim("employee_id").asString() ?: "",
             name = jwt.getClaim("name").asString() ?: "",
             email = jwt.getClaim("sub").asString() ?: "",
-            cars = employeeCars.toMutableList(),
+            selectedCar = employeeCars.find { it.id == parkingManager.getCarId() } ,
             reservation = employeeReservation
         )
     }
 
-    private suspend fun getEmployeeCars(): List<Car> {
+    suspend fun getEmployeeCars(): List<Car> {
         val response = authApi.getEmployeeCars()
 
         return if (response.isSuccessful) {
@@ -140,5 +145,15 @@ class AuthRepository(
         } else {
             null
         }
+    }
+
+    /**
+     * Adds a car to the server.
+     *
+     * @param car The car to add.
+     * @return The response containing the added car.
+     */
+    suspend fun addCar(car: Car): Response<Car> {
+        return authApi.addCar(car)
     }
 }
