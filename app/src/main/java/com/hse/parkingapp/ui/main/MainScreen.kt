@@ -439,9 +439,13 @@ fun CarAdditionSheet(
                 Button(
                     onClick = {
                         if (isValidNumber(registryNumber) && (if (registryNumber.length == 8)
-                                RussianLicensePlate.region.contains(registryNumber.takeLast(2).toInt())
+                                RussianLicensePlate.region.contains(
+                                    registryNumber.takeLast(2).toInt()
+                                )
                             else
-                                RussianLicensePlate.region.contains(registryNumber.takeLast(3).toInt()))
+                                RussianLicensePlate.region.contains(
+                                    registryNumber.takeLast(3).toInt()
+                                ))
                         ) {
                             scope.launch {
                                 onAddClick(model, registryNumber)
