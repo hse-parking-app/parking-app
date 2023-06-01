@@ -164,19 +164,18 @@ fun MainScreen(
             )
         }
     }
-    if (employee.selectedCar != null) {
-        BookingSheet(
-            bottomSheetState = bookingSheetState,
-            selectorState = selectorState,
-            onBookClick = {
-                scope.launch {
-                    handleEvent(SelectorEvent.SpotBooked)
-                    bookingSheetState.hide()
-                }
-            },
-            employee = employee
-        )
-    }
+
+    BookingSheet(
+        bottomSheetState = bookingSheetState,
+        selectorState = selectorState,
+        onBookClick = {
+            scope.launch {
+                handleEvent(SelectorEvent.SpotBooked)
+                bookingSheetState.hide()
+            }
+        },
+        employee = employee
+    )
 
     CarSelectionSheet(
         selectionSheetState = carSelectionSheetState,
@@ -268,16 +267,24 @@ fun BookingSheet(
                             Column(
                                 horizontalAlignment = Alignment.End
                             ) {
-                                Text(
-                                    text = employee.selectedCar?.registryNumber ?: "",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(
-                                    text = employee.selectedCar?.model ?: "",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                                if (employee.selectedCar != null) {
+                                    Text(
+                                        text = employee.selectedCar.registryNumber,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = employee.selectedCar.model,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(id = R.string.no_car),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                             }
                         }
                     )
@@ -288,7 +295,23 @@ fun BookingSheet(
                         .height(56.dp)
                         .fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
-                    onClick = onBookClick
+                    onClick = {
+                        if (employee.selectedCar != null) {
+                            onBookClick()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (employee.selectedCar == null) {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.primaryContainer
+                        },
+                        contentColor = if (employee.selectedCar == null) {
+                            MaterialTheme.colorScheme.onBackground
+                        } else {
+                            MaterialTheme.colorScheme.onPrimary
+                        }
+                    )
                 ) {
                     if (employee.isLoading) {
                         CircularProgressIndicator(

@@ -80,7 +80,7 @@ class AuthRepository(
             AuthResult.Authorized(employee = employee)
         } else {
             when (response.code()) {
-                400, 401, 403, 405 -> AuthResult.Unauthorized()
+                400, 401, 403, 405 -> AuthResult.WrongCredentials()
                 else -> AuthResult.UnknownError()
             }
         }

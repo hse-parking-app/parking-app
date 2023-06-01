@@ -45,9 +45,14 @@ fun NavGraph(
 
         viewModel.authResults.collectLatest { result ->
             when (result) {
-                is AuthResult.WrongTime -> showErrorToast(context, "Wrong local time")
+                is AuthResult.WrongTime -> showErrorToast(context, "Неправильное время")
+                is AuthResult.WrongCredentials -> showErrorToast(
+                    context,
+                    "Неправильные логин или пароль"
+                )
+
                 is AuthResult.Unauthorized, is AuthResult.UnknownError -> {
-                    showErrorToast(context, "You're not authorized")
+                    showErrorToast(context, "Вы не авторизованы")
                     navigateTo(Screen.SignScreen, navController)
                 }
 

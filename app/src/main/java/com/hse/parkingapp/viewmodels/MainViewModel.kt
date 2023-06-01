@@ -246,7 +246,8 @@ class MainViewModel @Inject constructor(
 
     private fun refreshCarsList() {
         viewModelScope.launch {
-            updateEmployeeAndReservation(employee.value)
+            val employee = authRepository.authenticate()
+            updateEmployeeAndReservation(employee.employee)
         }
     }
 
@@ -414,14 +415,6 @@ class MainViewModel @Inject constructor(
     }
 
     private fun updateSpot(spot: Spot) {
-        if (employee.value.selectedCar == null) {
-            viewModelScope.launch {
-                errors.value = errors.value.copy(error = ErrorType.NoCar)
-                delay(10)
-                errors.value = errors.value.copy(error = ErrorType.NoError)
-            }
-        }
-
         selectorState.value = selectorState.value.copy(
             selectedSpot = spot
         )
