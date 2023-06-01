@@ -51,6 +51,7 @@ import com.hse.parkingapp.ui.beta.screens.components.material3.rememberModalBott
 import com.hse.parkingapp.ui.main.fab.FabState
 import com.hse.parkingapp.ui.main.fab.TripleFAB
 import com.hse.parkingapp.ui.theme.ParkingAppTheme
+import com.hse.parkingapp.utils.constants.RussianLicensePlate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
@@ -349,7 +350,7 @@ fun CarSelectionSheet(
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(carsState.carsList) {car ->
+                        items(carsState.carsList) { car ->
                             CarCard(
                                 car = car,
                                 onCarClick = onCarClick
@@ -386,15 +387,15 @@ fun CarAdditionSheet(
     bottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
     ),
-    onAddClick: (String, String) -> Unit = { _, _ ->  },
-    employee: Employee = Employee()
+    onAddClick: (String, String) -> Unit = { _, _ -> },
+    employee: Employee = Employee(),
 ) {
     var model by remember { mutableStateOf("") }
     var registryNumber by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
     val isValidNumber: (String) -> Boolean = {
-        it.matches(Regex("[А-Я][0-9]{3}[А-Я]{2}[0-9]{2,3}"))
+        it.matches(RussianLicensePlate.plateRegex)
     }
 
     val scope = rememberCoroutineScope()
@@ -427,17 +428,21 @@ fun CarAdditionSheet(
                         value = registryNumber,
                         onValueChanged = {
                             isError = false
-                            registryNumber = it
+                            registryNumber = it.uppercase()
                         },
                         placeholder = stringResource(id = R.string.registry_number),
                         isError = isError,
                         supportingText = stringResource(id = R.string.invalid_number),
-                        isLastField = true
+                        isLastField = true,
                     )
                 }
                 Button(
                     onClick = {
-                        if (isValidNumber(registryNumber)) {
+                        if (isValidNumber(registryNumber) && (if (registryNumber.length == 8)
+                                RussianLicensePlate.region.contains(registryNumber.takeLast(2).toInt())
+                            else
+                                RussianLicensePlate.region.contains(registryNumber.takeLast(3).toInt()))
+                        ) {
                             scope.launch {
                                 onAddClick(model, registryNumber)
 
@@ -481,7 +486,7 @@ fun InputLine(
     placeholder: String = "",
     supportingText: String = "",
     isError: Boolean = false,
-    isLastField: Boolean = false
+    isLastField: Boolean = false,
 ) {
     TextField(
         value = value,
@@ -523,7 +528,7 @@ fun InputLine(
 fun CarCard(
     modifier: Modifier = Modifier,
     car: Car = Car(),
-    onCarClick: (Car) -> Unit = { }
+    onCarClick: (Car) -> Unit = { },
 ) {
     val buttonColor by animateColorAsState(
         if (car.isSelected) MaterialTheme.colorScheme.primaryContainer

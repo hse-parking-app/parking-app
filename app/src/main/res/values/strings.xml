@@ -22,5 +22,5 @@
     <string name="new_car">Новый автомобиль</string>
     <string name="model">Модель</string>
     <string name="registry_number">Номер</string>
-    <string name="invalid_number">Невалидный номер</string>
+    <string name="invalid_number">Неверный формат или несуществующий регион</string>
 </resources>
