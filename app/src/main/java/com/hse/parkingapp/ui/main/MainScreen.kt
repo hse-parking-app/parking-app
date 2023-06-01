@@ -395,7 +395,7 @@ fun CarAdditionSheet(
     var isError by remember { mutableStateOf(false) }
 
     val isValidNumber: (String) -> Boolean = {
-        it.matches(RussianLicensePlate.plateRegex)
+        it.matches(RussianLicensePlate.plateRegex) && it.length in 1..25
     }
 
     val scope = rememberCoroutineScope()
