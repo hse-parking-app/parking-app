@@ -4,7 +4,6 @@
     <style name="Theme.ParkingApp" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:navigationBarColor">@android:color/white</item>
-        <item name="android:background">@android:color/white</item>
         <item name="android:windowIsTranslucent">true</item>
     </style>
 </resources>
