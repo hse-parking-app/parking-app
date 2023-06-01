@@ -69,6 +69,11 @@ sealed class SelectorEvent {
      */
     class AddCar(
         val model: String,
-        val registryNumber: String
+        val registryNumber: String,
     ) : SelectorEvent()
+
+    /**
+     * Event indicating a process of car deletion
+     */
+    class DeleteCar(val carId: String) : SelectorEvent()
 }

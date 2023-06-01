@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -22,9 +23,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -181,6 +184,9 @@ fun MainScreen(
         carsState = carsState,
         onCarClick = { car ->
             scope.launch { handleEvent(SelectorEvent.SelectCar(car)) }
+        },
+        deleteCar = { carId ->
+            handleEvent(SelectorEvent.DeleteCar(carId))
         }
     )
 
@@ -303,7 +309,7 @@ fun BookingSheet(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 fun CarSelectionSheet(
     modifier: Modifier = Modifier,
     selectionSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
@@ -314,6 +320,7 @@ fun CarSelectionSheet(
     ),
     carsState: CarsState = CarsState(),
     onCarClick: (Car) -> Unit = { },
+    deleteCar: (String) -> Unit = { },
 ) {
     val scope = rememberCoroutineScope()
 
@@ -350,10 +357,44 @@ fun CarSelectionSheet(
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(carsState.carsList) { car ->
-                            CarCard(
-                                car = car,
-                                onCarClick = onCarClick
+                        items(
+                            items = carsState.carsList,
+                            key = { car -> car.id }
+                        ) { car ->
+                            val currentItem by rememberUpdatedState(car)
+                            val dismissThreshold = 0.25f
+                            val currentFraction = remember { mutableStateOf(0f) }
+                            val dismissState = rememberDismissState(
+                                confirmValueChange = {
+                                    if (currentFraction.value >= dismissThreshold &&
+                                        currentFraction.value < 1.0f
+                                    ) {
+                                        deleteCar(currentItem.id)
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                },
+                                positionalThreshold = { 72.dp.toPx() }
+                            )
+
+                            SwipeToDismiss(
+                                modifier = Modifier
+                                    .animateItemPlacement(),
+                                state = dismissState,
+                                directions = setOf(DismissDirection.StartToEnd),
+                                background = {
+                                    SwipeBackground(dismissState)
+                                },
+                                dismissContent = {
+                                    CarCard(
+                                        car = car,
+                                        onCarClick = onCarClick,
+                                        changeCurrentFraction = {
+                                            currentFraction.value = dismissState.progress
+                                        }
+                                    )
+                                }
                             )
                         }
                     }
@@ -378,6 +419,28 @@ fun CarSelectionSheet(
             }
         }
     ) { }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun SwipeBackground(dismissState: DismissState) {
+    val scale by animateFloatAsState(
+        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1.2f
+    )
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.outline_delete_24),
+            tint = MaterialTheme.colorScheme.error,
+            contentDescription = "Delete car",
+            modifier = Modifier.scale(scale)
+        )
+    }
 }
 
 @Composable
@@ -533,7 +596,10 @@ fun CarCard(
     modifier: Modifier = Modifier,
     car: Car = Car(),
     onCarClick: (Car) -> Unit = { },
+    changeCurrentFraction: () -> Unit = { },
 ) {
+    changeCurrentFraction()
+
     val buttonColor by animateColorAsState(
         if (car.isSelected) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.surfaceVariant

@@ -230,6 +230,17 @@ class MainViewModel @Inject constructor(
             is SelectorEvent.AddCar -> {
                 addNewCar(selectorEvent.model, selectorEvent.registryNumber)
             }
+
+            is SelectorEvent.DeleteCar -> {
+                deleteCar(selectorEvent.carId)
+            }
+        }
+    }
+
+    private fun deleteCar(carId: String) {
+        viewModelScope.launch {
+            authRepository.deleteCar(carId)
+            refreshCarsList()
         }
     }
 
@@ -429,9 +440,21 @@ class MainViewModel @Inject constructor(
     private suspend fun updateEmployeeAndReservation(newEmployee: Employee?) {
         employee.value = newEmployee ?: Employee()
 
+        val cars = authRepository
+            .getEmployeeCars()
+            .sortedBy { it.model }
+
+        if (cars.isNotEmpty()) {
+            if (parkingManager.getCarId() !in cars.map { it.id }) {
+                parkingManager.saveCarId(cars.first().id)
+            }
+        } else {
+            parkingManager.deleteCarId()
+        }
+
         carsList.value.inflateCarsList(
-            authRepository.getEmployeeCars().map {
-                it.copy(isSelected = it.id == parkingManager.getCarId())
+            cars.map { car ->
+                car.copy(isSelected = car.id == parkingManager.getCarId())
             }
         )
 

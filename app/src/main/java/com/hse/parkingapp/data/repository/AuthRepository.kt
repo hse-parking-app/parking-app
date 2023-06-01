@@ -2,8 +2,8 @@ package com.hse.parkingapp.data.repository
 
 import com.auth0.android.jwt.JWT
 import com.hse.parkingapp.data.network.AuthApi
-import com.hse.parkingapp.model.car.Car
 import com.hse.parkingapp.model.Employee
+import com.hse.parkingapp.model.car.Car
 import com.hse.parkingapp.model.reservation.ReservationResult
 import com.hse.parkingapp.utils.auth.AuthRequest
 import com.hse.parkingapp.utils.auth.AuthResult
@@ -155,5 +155,15 @@ class AuthRepository(
      */
     suspend fun addCar(car: Car): Response<Car> {
         return authApi.addCar(car)
+    }
+
+    /**
+     * Deletes a car from the server.
+     *
+     * @param carId The ID of the car to delete.
+     * @return The response indicating the success or failure of the deletion operation.
+     */
+    suspend fun deleteCar(carId: String): Response<Unit> {
+        return authApi.deleteCar(carId)
     }
 }
