@@ -23,4 +23,6 @@
     <string name="model">Модель</string>
     <string name="registry_number">Номер</string>
     <string name="invalid_number">Неверный формат или несуществующий регион</string>
+    <string name="not_authorized">Вы не авторизованы</string>
+    <string name="no_car">Нет машины</string>
 </resources>

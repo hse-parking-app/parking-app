@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Parking App</string>
+    <string name="app_description">Parking slots booking</string>
+    <string name="logo_letter">P</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="booking">Booking</string>
+    <string name="place">Spot</string>
+    <string name="time_and_date">Time / date</string>
+    <string name="car">Car</string>
+    <string name="book">Book</string>
+    <string name="continue_">Continue</string>
+    <string name="has_reservation">You have a booked spot</string>
+    <string name="choose_building">Choose parking</string>
+    <string name="cancel_reservation">Cancel reservation</string>
+    <string name="no_place_to_reserve">No time slots for today</string>
+    <string name="empty_parking">No parking spots</string>
+    <string name="cars">Cars</string>
+    <string name="no_cars_available">You have no cars</string>
+    <string name="add">Add</string>
+    <string name="new_car">New car</string>
+    <string name="model">Model</string>
+    <string name="registry_number">License plate</string>
+    <string name="invalid_number">Wrong format or region</string>
+    <string name="not_authorized">You\'re not authorized</string>
+    <string name="no_car">Нет машины</string>
+</resources>
