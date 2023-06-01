@@ -456,9 +456,10 @@ fun CarAdditionSheet(
     var model by remember { mutableStateOf("") }
     var registryNumber by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    val maxModelNameLength = 25
 
     val isValidNumber: (String) -> Boolean = {
-        it.matches(RussianLicensePlate.plateRegex) && it.length in 1..25
+        it.matches(RussianLicensePlate.plateRegex)
     }
 
     val scope = rememberCoroutineScope()
@@ -484,7 +485,7 @@ fun CarAdditionSheet(
                 ) {
                     InputLine(
                         value = model,
-                        onValueChanged = { model = it },
+                        onValueChanged = { if(it.length <= maxModelNameLength) model = it },
                         placeholder = stringResource(id = R.string.model)
                     )
                     InputLine(
