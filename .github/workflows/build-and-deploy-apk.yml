@@ -1,0 +1,78 @@
+name: Build & deploy APK
+on: workflow_dispatch
+
+env:
+  SIGNKEY_ALIAS: ${{ secrets.SIGNKEY_ALIAS }}
+  SIGNKEY_PASSWORD: ${{ secrets.SIGNKEY_PASSWORD }}
+  SIGNKEY_BASE64: ${{ secrets.SIGNKEY_BASE64 }}
+
+jobs:
+  get-apk:
+    name: Build APK + sign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'oracle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Decode sign key
+        run: |
+          echo "${{ secrets.SIGNKEY_BASE64 }}" | base64 -d > app/parking_app_signkey.jks
+
+      - name: Build APK
+        if: success()
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon assembleSignedRelease
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: parking-app-release
+          path: app/build/outputs/apk/signedRelease/*.apk
+          retention-days: 14
+
+  send-apk:
+    needs: get-apk
+    name: Send Telegram notification
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get APK from artifact
+        uses: actions/download-artifact@master
+        with:
+          name: parking-app-release
+          path: app/build/outputs/apk
+
+      - name: Get current time
+        if: always()
+        uses: josStorer/get-current-time@v2
+        id: current_time
+        with:
+          format: DD.MM.YYYY kk:mm:ssZZ
+          utcOffset: "+03:00"
+
+      - name: Telegram Notify
+        if: always()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: html
+          message: |
+            <b>${{ steps.current_time.outputs.formattedTime }}</b>
+
+            Repository: ${{ github.repository }}
+            Build was initiated by <b>${{ github.actor }}</b> with <b>${{ github.event_name }}</b>
+            Build status: <b>${{ job.status }}</b>
+          document: app/build/outputs/apk/*.apk
