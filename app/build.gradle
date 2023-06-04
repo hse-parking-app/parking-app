@@ -6,6 +6,13 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
+if (file('secrets.gradle').exists()) {
+    apply from: 'secrets.gradle'
+} else {
+    project.ext.signKeyPassword = System.getenv("SIGNKEY_PASSWORD")
+    project.ext.signKeyAlias = System.getenv("SIGNKEY_ALIAS")
+}
+
 android {
     namespace 'com.hse.parkingapp'
     compileSdk 33
@@ -23,12 +30,33 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file('parking_app_signkey.jks')
+            storePassword project.ext.signKeyPassword
+            keyAlias project.ext.signKeyAlias
+            keyPassword project.ext.signKeyPassword
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        signedRelease {
+            signingConfig signingConfigs.release
+        }
     }
+    applicationVariants.all {
+        variant ->
+            variant.outputs.each {
+                output ->
+                    def name = "${project.name}-${variant.versionName}-${variant.buildType.name}.apk"
+                    name = name.replace('app', 'parking-app')
+                    output.outputFileName = name
+            }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
