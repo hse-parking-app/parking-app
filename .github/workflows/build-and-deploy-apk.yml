@@ -62,17 +62,22 @@ jobs:
           format: DD.MM.YYYY kk:mm:ssZZ
           utcOffset: "+03:00"
 
+      # - name: Telegram Notify
+      #   if: always()
+      #   uses: appleboy/telegram-action@master
+      #   with:
+      #     to: ${{ secrets.TELEGRAM_CHAT_ID }}
+      #     token: ${{ secrets.TELEGRAM_TOKEN }}
+      #     format: html
+      #     message: |
+      #       <b>${{ steps.current_time.outputs.formattedTime }}</b>
+
+      #       Repository: ${{ github.repository }}
+      #       Build was initiated by <b>${{ github.actor }}</b> with <b>${{ github.event_name }}</b>
+      #       Build status: <b>${{ job.status }}</b>
+      #     document: app/build/outputs/apk/*.apk
+
       - name: Telegram Notify
         if: always()
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: html
-          message: |
-            <b>${{ steps.current_time.outputs.formattedTime }}</b>
-
-            Repository: ${{ github.repository }}
-            Build was initiated by <b>${{ github.actor }}</b> with <b>${{ github.event_name }}</b>
-            Build status: <b>${{ job.status }}</b>
-          document: app/build/outputs/apk/*.apk
+        run: |
+          curl "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" -F chat_id="$ {{ secrets.TELEGRAM_CHAT_ID }}" -F parse_mode=HTML -F text="<b>${{ steps.current_time.outputs.formattedTime }}</b>\nRepository: ${{ github.repository }}\nBuild was initiated by <b>${{ github.actor }}</b> with <b>${{ github.event_name }}</b>\nBuild status: <b>${{ job.status }}</b>"
